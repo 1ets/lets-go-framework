@@ -2,6 +2,7 @@ package main
 
 import (
 	"lets-go-framework/bootstraps"
+	"lets-go-framework/controllers"
 	"lets-go-framework/initiators"
 )
 
@@ -12,5 +13,8 @@ func init() {
 
 func main() {
 	bootstraps.OnMain()
+
+	controllers.CreateOrder()
+
 	initiators.RunningForever()
 }
