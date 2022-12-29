@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package service_transaction;
+option go_package="adapters/protobuf";
+
+message Transaction {
+ int32 id = 1;
+ int32 account_id = 2;
+ string date = 3;
+ string type = 4;
+ float amount = 5;
+}
