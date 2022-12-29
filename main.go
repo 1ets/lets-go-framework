@@ -1,20 +1,15 @@
 package main
 
-import (
-	"lets-go-framework/bootstraps"
-	"lets-go-framework/controllers"
-	"lets-go-framework/initiators"
-)
+import "lets-go-framework/lets"
 
 // Initialize all required vars, consts
+
+var boot = lets.Bootstrap{}
+
 func init() {
-	bootstraps.OnInit()
+	boot.OnInit()
 }
 
 func main() {
-	bootstraps.OnMain()
-
-	controllers.CreateOrder()
-
-	initiators.RunningForever()
+	boot.OnMain()
 }
