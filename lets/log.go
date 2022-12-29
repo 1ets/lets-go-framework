@@ -1,11 +1,11 @@
-package log9
+package lets
 
 import (
 	"github.com/kataras/golog"
 )
 
 // Print debug message
-func D(tag string, data interface{}) {
+func LogE(tag string, data interface{}) {
 	var format string
 
 	switch data.(type) {
