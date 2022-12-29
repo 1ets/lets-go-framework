@@ -1,15 +1,14 @@
-package initiators
+package lets
 
 import (
-	"lets-go-framework/log9"
 	"math"
 	"time"
 )
 
 // Hold the thread for exitting
-func RunningForever() {
+func runningForever() {
 	for {
-		log9.D("RunningForever", "Service never stopped")
+		LogE("RunningForever", "Service never stopped")
 		time.Sleep(time.Duration(math.MaxInt64))
 	}
 }
