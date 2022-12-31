@@ -7,11 +7,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type GrpcEngine struct {
-	Connections []*GrpcConnection
+type DriverGrpc struct {
+	Connections []*Grpc
 }
 
-type GrpcConnection struct {
+type Grpc struct {
 	Name       string
 	Host       string
 	Port       string
@@ -19,11 +19,11 @@ type GrpcConnection struct {
 	Error      error
 }
 
-func NewGrpc() *GrpcEngine {
-	return &GrpcEngine{}
+func NewGrpc() *DriverGrpc {
+	return &DriverGrpc{}
 }
 
-func (gc *GrpcConnection) connect() {
+func (gc *Grpc) connect() {
 	server := fmt.Sprintf("%s:%s", gc.Host, gc.Port)
 
 	gc.Connection, gc.Error = grpc.Dial(server, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -35,21 +35,21 @@ func (gc *GrpcConnection) connect() {
 	}
 }
 
-func (pool *GrpcEngine) AddService(name string, host string, port string) {
-	pool.Connections = append(pool.Connections, &GrpcConnection{
+func (pool *DriverGrpc) AddService(name string, host string, port string) {
+	pool.Connections = append(pool.Connections, &Grpc{
 		Name: name,
 		Host: host,
 		Port: port,
 	})
 
 }
-func (pool *GrpcEngine) Connect() {
+func (pool *DriverGrpc) Connect() {
 	for _, gc := range pool.Connections {
 		gc.connect()
 	}
 }
 
-func (pool *GrpcEngine) GetService(name string) grpc.ClientConnInterface {
+func (pool *DriverGrpc) GetService(name string) grpc.ClientConnInterface {
 	for _, gb := range pool.Connections {
 		if gb.Name == name {
 			return gb.Connection
