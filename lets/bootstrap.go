@@ -1,20 +1,30 @@
 package lets
 
 import (
-	"lets-go-framework/configs"
+	"fmt"
+	"reflect"
+	"runtime"
 )
 
-type Bootstrap struct{}
+type Bootstrap struct {
+	OnInits []func()
+	OnMains []func()
+}
 
 func (b *Bootstrap) OnInit() {
-	loadEnv()
+	fmt.Println("Initialization")
+	for i, initializer := range b.OnInits {
+		fmt.Printf("%v. Initializing %s\n", i, runtime.FuncForPC(reflect.ValueOf(initializer).Pointer()).Name())
+		initializer()
+	}
 }
 
 func (b *Bootstrap) OnMain() {
-	configs.Initialize()
-
-	go loadHttpFramework()
-	go loadGrpcFramework()
+	fmt.Println("Starting up")
+	for i, runner := range b.OnMains {
+		fmt.Printf("%v. Starting %s", i, runtime.FuncForPC(reflect.ValueOf(runner).Pointer()).Name())
+		go runner()
+	}
 
 	runningForever()
 }

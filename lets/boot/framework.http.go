@@ -1,4 +1,4 @@
-package lets
+package boot
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ func (http *httpService) Serve() {
 }
 
 // Define http service host and port
-func loadHttpFramework() {
+func LoadHttpFramework() {
 	http := httpService{
 		Port: os.Getenv("SERVE_HTTP_PORT"),
 	}

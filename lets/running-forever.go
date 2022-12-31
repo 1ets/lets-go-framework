@@ -8,7 +8,6 @@ import (
 // Hold the thread for exitting
 func runningForever() {
 	for {
-		LogE("RunningForever", "Service never stopped")
 		time.Sleep(time.Duration(math.MaxInt64))
 	}
 }

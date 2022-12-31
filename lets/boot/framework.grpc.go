@@ -1,13 +1,13 @@
-package lets
+package boot
 
 import (
 	"lets-go-framework/adapters"
 	"lets-go-framework/lets/drivers"
 )
 
-func loadGrpcFramework() {
+func LoadGrpcFramework() {
 	grpcDriver := drivers.NewGrpc()
-	adapters.GrpcServiceConnection(grpcDriver)
+	adapters.GrpcService(grpcDriver)
 	grpcDriver.Connect()
-	adapters.GrpcServiceClient(grpcDriver)
+	adapters.GrpcClient(grpcDriver)
 }
