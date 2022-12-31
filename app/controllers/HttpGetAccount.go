@@ -3,7 +3,7 @@ package controllers
 import (
 	"lets-go-framework/adapters"
 	"lets-go-framework/adapters/data"
-	"lets-go-framework/app/helpers"
+	"lets-go-framework/lets"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,5 +18,5 @@ func HttpGetAccount(g *gin.Context) {
 		},
 	})
 
-	helpers.GinResponse(g, response, err)
+	lets.Response(g, response, err)
 }
