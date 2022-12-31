@@ -16,10 +16,10 @@ func RouteHttpServicse(route *gin.Engine) {
 
 	// Accounts
 	example.GET("account", controllers.HttpGetAccount)
-	example.GET("account/:id", controllers.PostTransferMoney)
-	example.POST("account", controllers.PostTransferMoney)
+	example.GET("account/:id", controllers.HttpGetAccount)
+	example.POST("account", controllers.HttpGetAccount)
 
 	// Transfers
-	example.GET("transfer", controllers.PostTransferMoney)
-	example.POST("transfer/success", controllers.PostTransferMoney)
+	example.GET("transfer", controllers.HttpGetAccount)
+	example.POST("transfer/success", controllers.HttpGetAccount)
 }
