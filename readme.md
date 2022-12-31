@@ -1,11 +1,13 @@
 # Lets Golang Framework
 
-Adalah framework project go yang lebih baik.
+Lets adalah framework yang menggabungkan beberapa framwork untuk bootstraping servis.
 
-Tersedia 2 jenis branch untuk anda. Silahkan chekout:
+**Kelengkapan:**
+- Saga (Orchestration & Choreograpy) with API-Driven and Event-Driven
+- HttpFramework
+- RabbitMQ
+- GRPC
 
-manager := adalah framework orhestration
+![Alt text](https://raw.github.com/dhutapratama/lets-go-framework/master/doc/LetsFramework.drawio.svg)
 
-service := adalah framework untuk sebagai penyedia database
-
-Untuk sementara anda dapat mengubungi saya dengan membuat issue.
+Buat issue jika mengalami kendala.
