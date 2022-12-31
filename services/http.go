@@ -1,7 +1,7 @@
 package services
 
 import (
-	"lets-go-framework/controllers"
+	"lets-go-framework/app/controllers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,6 +13,13 @@ func MiddlewareHttpService(middleware *gin.Engine) {
 
 func RouteHttpServicse(route *gin.Engine) {
 	example := route.Group("example")
-	example.GET("transfer/success", controllers.PostTransferMoney)
-	example.GET("transfer/failed", controllers.PostTransferMoneyFailed)
+
+	// Accounts
+	example.GET("account", controllers.HttpGetAccount)
+	example.GET("account/:id", controllers.PostTransferMoney)
+	example.POST("account", controllers.PostTransferMoney)
+
+	// Transfers
+	example.GET("transfer", controllers.PostTransferMoney)
+	example.POST("transfer/success", controllers.PostTransferMoney)
 }
