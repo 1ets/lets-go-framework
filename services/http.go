@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"lets-go-framework/app/controllers"
 
 	"github.com/gin-gonic/gin"
@@ -8,10 +9,13 @@ import (
 
 // Global Middleware setup
 func MiddlewareHttpService(middleware *gin.Engine) {
+	fmt.Println("MiddlewareHttpService()")
 	middleware.Use(gin.Logger(), gin.Recovery())
 }
 
-func RouteHttpServicse(route *gin.Engine) {
+func RouteHttpService(route *gin.Engine) {
+	fmt.Println("RouteHttpService()")
+
 	example := route.Group("example")
 
 	// Accounts

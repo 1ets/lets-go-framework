@@ -15,16 +15,22 @@ type httpService struct {
 }
 
 func (http *httpService) Init() {
+	fmt.Println("httpService.Init()")
+
 	http.Server = gin.New()
 }
 
 func (http *httpService) Serve() {
+	fmt.Println("httpService.Serve()")
+
 	ServePort := fmt.Sprintf(":%s", http.Port)
 	http.Server.Run(ServePort)
 }
 
 // Define http service host and port
 func LoadHttpFramework() {
+	fmt.Println("httpService.LoadHttpFramework()")
+
 	http := httpService{
 		Port: os.Getenv("SERVE_HTTP_PORT"),
 	}
@@ -32,7 +38,7 @@ func LoadHttpFramework() {
 	http.Init()
 
 	services.MiddlewareHttpService(http.Server)
-	services.RouteHttpServicse(http.Server)
+	services.RouteHttpService(http.Server)
 
 	http.Serve()
 }
