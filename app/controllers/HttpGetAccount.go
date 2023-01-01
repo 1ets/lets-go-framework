@@ -8,11 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// HTTP Controller Handler for get account information
 func HttpGetAccount(g *gin.Context) {
 	var response interface{}
 	var err error
+	svcAccount := adapters.ApiAccount
 
-	response, err = adapters.ApiAccount.Get(g, data.RequestGetAccount{
+	response, err = svcAccount.Get(g, &data.RequestGetAccount{
 		Filter: &data.FilterAccount{
 			Id: 1,
 		},
