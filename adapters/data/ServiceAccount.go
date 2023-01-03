@@ -1,7 +1,7 @@
 package data
 
 type Account struct {
-	ID      uint    `json:"id"`
+	Id      uint    `json:"id"`
 	Name    string  `json:"name"`
 	Balance float64 `json:"balance"`
 }
@@ -9,16 +9,17 @@ type Account struct {
 type RequestAccountGet struct{}
 type ResponseAccountGet []Account
 
-type RequestGetAccount struct {
-	Filter *FilterAccount `json:"filter,omitempty"`
+type RequestAccountFind struct {
+	Id uint `json:"id"`
 }
+type ResponseAccountFind Account
 
-type FilterAccount struct {
-	Id int32 `json:"id,omitempty"`
+type RequestAccountInsert struct {
+	Id      uint    `json:"id,omitempty"`
+	Name    string  `json:"name,omitempty"`
+	Balance float64 `json:"balance,omitempty"`
 }
-
-type ResponseGetAccount struct {
-	Id      uint    `json:"id"`
-	Name    string  `json:"name"`
-	Balance float64 `json:"balance"`
+type ResponseAccountInsert struct {
+	Code   uint16 `json:"code,omitempty"`
+	Status string `json:"status,omitempty"`
 }

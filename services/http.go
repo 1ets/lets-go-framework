@@ -19,11 +19,11 @@ func RouteHttpService(route *gin.Engine) {
 	example := route.Group("example")
 
 	// Accounts
-	example.GET("account", controllers.HttpGetAccount)
-	example.GET("account/:id", controllers.HttpGetAccount)
-	example.POST("account", controllers.HttpGetAccount)
+	example.GET("account", controllers.HttpAccountGet)
+	example.GET("account/:id", controllers.HttpAccountFind)
+	example.POST("account", controllers.HttpAccountRegister)
 
 	// Transfers
-	example.GET("transfer", controllers.HttpGetAccount)
-	example.POST("transfer/success", controllers.HttpGetAccount)
+	example.GET("transfer", controllers.HttpAccountGet)
+	example.POST("transfer/success", controllers.HttpAccountGet)
 }

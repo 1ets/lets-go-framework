@@ -1,7 +1,7 @@
 package data
 
 type RequestGetTransaction struct {
-	Filter *FilterAccount `json:"filter,omitempty"`
+	Filter string `json:"filter,omitempty"`
 }
 
 type FilterTransaction struct {
