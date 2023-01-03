@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package service_account;
+option go_package="adapters/protobuf";
+
+message Account {
+ uint64 id = 1;
+ string name = 2;
+ float balance = 3;
+}
+
+message Find {
+	uint64 id = 1;
+}

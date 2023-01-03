@@ -9,36 +9,41 @@ import (
 )
 
 // GRPC API collections for Account Service
-var ApiAccount = apiAccountAdapter{}
+var ApiAccount = adapterGrpcAccount{}
 
 // Adapter for GRPC API Account Service
-type apiAccountAdapter struct {
-	Client protobuf.AccountServiceClient
+type adapterGrpcAccount struct {
+	Client protobuf.ApiAccountClient
 }
 
 // API Collection: Get accounts
-func (ac *apiAccountAdapter) Get(ctx context.Context, request *data.RequestGetAccount) (response *data.ResponseGetAccount, err error) {
+func (ac *adapterGrpcAccount) Get(ctx context.Context, request *data.RequestGetAccount) (response *data.ResponseAccountGet, err error) {
 	fmt.Println("GetAccount")
 
 	// Convert data type to protobuf type
-	reqGetAccount, _ := json.Marshal(request)
+	requestJson, _ := json.Marshal(request)
 
-	var getAccount = protobuf.RequestGetAccount{}
-	json.Unmarshal(reqGetAccount, &getAccount)
+	var requestGrpc = protobuf.RequestAccountGet{}
+	json.Unmarshal(requestJson, &requestGrpc)
 
-	// Start call endpoint
-	apiResponse, err := ac.Client.Get(context.Background(), &getAccount)
+	// Call endpoint
+	grpcResponse, err := ac.Client.Get(context.Background(), &requestGrpc)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
 	// Convert response protobuf type to data type
-	response = &data.ResponseGetAccount{
-		Id:      uint(apiResponse.Id),
-		Name:    apiResponse.Name,
-		Balance: float64(apiResponse.Balance),
+	var responseBucket data.ResponseAccountGet
+	for _, account := range grpcResponse.GetData() {
+		responseBucket = append(responseBucket, data.Account{
+			ID:      uint(account.Id),
+			Name:    account.Name,
+			Balance: float64(account.Balance),
+		})
 	}
+
+	response = &responseBucket
 
 	return
 }

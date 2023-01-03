@@ -11,6 +11,6 @@ func GrpcService(pool *drivers.DriverGrpc) {
 }
 
 func GrpcClient(pool *drivers.DriverGrpc) {
-	ApiAccount.Client = protobuf.NewAccountServiceClient(pool.GetService("account"))
+	ApiAccount.Client = protobuf.NewApiAccountClient(pool.GetService("account"))
 	ApiTransaction.Client = protobuf.NewTransactionServiceClient(pool.GetService("transaction"))
 }

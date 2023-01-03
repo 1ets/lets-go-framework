@@ -18,230 +18,230 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AccountServiceClient is the client API for AccountService service.
+// ApiAccountClient is the client API for ApiAccount service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AccountServiceClient interface {
-	Insert(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error)
-	Select(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error)
-	Get(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error)
-	Update(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error)
-	Delete(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error)
+type ApiAccountClient interface {
+	Insert(ctx context.Context, in *RequestAccountInsert, opts ...grpc.CallOption) (*ResponseAccountInsert, error)
+	Find(ctx context.Context, in *RequestAccountFind, opts ...grpc.CallOption) (*ResponseAccountFind, error)
+	Get(ctx context.Context, in *RequestAccountGet, opts ...grpc.CallOption) (*ResponseAccountGet, error)
+	Update(ctx context.Context, in *RequestAccountUpdate, opts ...grpc.CallOption) (*ResponseAccountUpdate, error)
+	Delete(ctx context.Context, in *RequestAccountDelete, opts ...grpc.CallOption) (*ResponseAccountDelete, error)
 }
 
-type accountServiceClient struct {
+type apiAccountClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAccountServiceClient(cc grpc.ClientConnInterface) AccountServiceClient {
-	return &accountServiceClient{cc}
+func NewApiAccountClient(cc grpc.ClientConnInterface) ApiAccountClient {
+	return &apiAccountClient{cc}
 }
 
-func (c *accountServiceClient) Insert(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error) {
-	out := new(ResponseGetAccount)
-	err := c.cc.Invoke(ctx, "/service_account.AccountService/Insert", in, out, opts...)
+func (c *apiAccountClient) Insert(ctx context.Context, in *RequestAccountInsert, opts ...grpc.CallOption) (*ResponseAccountInsert, error) {
+	out := new(ResponseAccountInsert)
+	err := c.cc.Invoke(ctx, "/service_account.ApiAccount/Insert", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *accountServiceClient) Select(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error) {
-	out := new(ResponseGetAccount)
-	err := c.cc.Invoke(ctx, "/service_account.AccountService/Select", in, out, opts...)
+func (c *apiAccountClient) Find(ctx context.Context, in *RequestAccountFind, opts ...grpc.CallOption) (*ResponseAccountFind, error) {
+	out := new(ResponseAccountFind)
+	err := c.cc.Invoke(ctx, "/service_account.ApiAccount/Find", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *accountServiceClient) Get(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error) {
-	out := new(ResponseGetAccount)
-	err := c.cc.Invoke(ctx, "/service_account.AccountService/Get", in, out, opts...)
+func (c *apiAccountClient) Get(ctx context.Context, in *RequestAccountGet, opts ...grpc.CallOption) (*ResponseAccountGet, error) {
+	out := new(ResponseAccountGet)
+	err := c.cc.Invoke(ctx, "/service_account.ApiAccount/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *accountServiceClient) Update(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error) {
-	out := new(ResponseGetAccount)
-	err := c.cc.Invoke(ctx, "/service_account.AccountService/Update", in, out, opts...)
+func (c *apiAccountClient) Update(ctx context.Context, in *RequestAccountUpdate, opts ...grpc.CallOption) (*ResponseAccountUpdate, error) {
+	out := new(ResponseAccountUpdate)
+	err := c.cc.Invoke(ctx, "/service_account.ApiAccount/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *accountServiceClient) Delete(ctx context.Context, in *RequestGetAccount, opts ...grpc.CallOption) (*ResponseGetAccount, error) {
-	out := new(ResponseGetAccount)
-	err := c.cc.Invoke(ctx, "/service_account.AccountService/Delete", in, out, opts...)
+func (c *apiAccountClient) Delete(ctx context.Context, in *RequestAccountDelete, opts ...grpc.CallOption) (*ResponseAccountDelete, error) {
+	out := new(ResponseAccountDelete)
+	err := c.cc.Invoke(ctx, "/service_account.ApiAccount/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AccountServiceServer is the server API for AccountService service.
-// All implementations must embed UnimplementedAccountServiceServer
+// ApiAccountServer is the server API for ApiAccount service.
+// All implementations must embed UnimplementedApiAccountServer
 // for forward compatibility
-type AccountServiceServer interface {
-	Insert(context.Context, *RequestGetAccount) (*ResponseGetAccount, error)
-	Select(context.Context, *RequestGetAccount) (*ResponseGetAccount, error)
-	Get(context.Context, *RequestGetAccount) (*ResponseGetAccount, error)
-	Update(context.Context, *RequestGetAccount) (*ResponseGetAccount, error)
-	Delete(context.Context, *RequestGetAccount) (*ResponseGetAccount, error)
-	mustEmbedUnimplementedAccountServiceServer()
+type ApiAccountServer interface {
+	Insert(context.Context, *RequestAccountInsert) (*ResponseAccountInsert, error)
+	Find(context.Context, *RequestAccountFind) (*ResponseAccountFind, error)
+	Get(context.Context, *RequestAccountGet) (*ResponseAccountGet, error)
+	Update(context.Context, *RequestAccountUpdate) (*ResponseAccountUpdate, error)
+	Delete(context.Context, *RequestAccountDelete) (*ResponseAccountDelete, error)
+	mustEmbedUnimplementedApiAccountServer()
 }
 
-// UnimplementedAccountServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedAccountServiceServer struct {
+// UnimplementedApiAccountServer must be embedded to have forward compatible implementations.
+type UnimplementedApiAccountServer struct {
 }
 
-func (UnimplementedAccountServiceServer) Insert(context.Context, *RequestGetAccount) (*ResponseGetAccount, error) {
+func (UnimplementedApiAccountServer) Insert(context.Context, *RequestAccountInsert) (*ResponseAccountInsert, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Insert not implemented")
 }
-func (UnimplementedAccountServiceServer) Select(context.Context, *RequestGetAccount) (*ResponseGetAccount, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Select not implemented")
+func (UnimplementedApiAccountServer) Find(context.Context, *RequestAccountFind) (*ResponseAccountFind, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
 }
-func (UnimplementedAccountServiceServer) Get(context.Context, *RequestGetAccount) (*ResponseGetAccount, error) {
+func (UnimplementedApiAccountServer) Get(context.Context, *RequestAccountGet) (*ResponseAccountGet, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedAccountServiceServer) Update(context.Context, *RequestGetAccount) (*ResponseGetAccount, error) {
+func (UnimplementedApiAccountServer) Update(context.Context, *RequestAccountUpdate) (*ResponseAccountUpdate, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedAccountServiceServer) Delete(context.Context, *RequestGetAccount) (*ResponseGetAccount, error) {
+func (UnimplementedApiAccountServer) Delete(context.Context, *RequestAccountDelete) (*ResponseAccountDelete, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
-func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
+func (UnimplementedApiAccountServer) mustEmbedUnimplementedApiAccountServer() {}
 
-// UnsafeAccountServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AccountServiceServer will
+// UnsafeApiAccountServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ApiAccountServer will
 // result in compilation errors.
-type UnsafeAccountServiceServer interface {
-	mustEmbedUnimplementedAccountServiceServer()
+type UnsafeApiAccountServer interface {
+	mustEmbedUnimplementedApiAccountServer()
 }
 
-func RegisterAccountServiceServer(s grpc.ServiceRegistrar, srv AccountServiceServer) {
-	s.RegisterService(&AccountService_ServiceDesc, srv)
+func RegisterApiAccountServer(s grpc.ServiceRegistrar, srv ApiAccountServer) {
+	s.RegisterService(&ApiAccount_ServiceDesc, srv)
 }
 
-func _AccountService_Insert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestGetAccount)
+func _ApiAccount_Insert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestAccountInsert)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountServiceServer).Insert(ctx, in)
+		return srv.(ApiAccountServer).Insert(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service_account.AccountService/Insert",
+		FullMethod: "/service_account.ApiAccount/Insert",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).Insert(ctx, req.(*RequestGetAccount))
+		return srv.(ApiAccountServer).Insert(ctx, req.(*RequestAccountInsert))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AccountService_Select_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestGetAccount)
+func _ApiAccount_Find_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestAccountFind)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountServiceServer).Select(ctx, in)
+		return srv.(ApiAccountServer).Find(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service_account.AccountService/Select",
+		FullMethod: "/service_account.ApiAccount/Find",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).Select(ctx, req.(*RequestGetAccount))
+		return srv.(ApiAccountServer).Find(ctx, req.(*RequestAccountFind))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AccountService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestGetAccount)
+func _ApiAccount_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestAccountGet)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountServiceServer).Get(ctx, in)
+		return srv.(ApiAccountServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service_account.AccountService/Get",
+		FullMethod: "/service_account.ApiAccount/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).Get(ctx, req.(*RequestGetAccount))
+		return srv.(ApiAccountServer).Get(ctx, req.(*RequestAccountGet))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AccountService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestGetAccount)
+func _ApiAccount_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestAccountUpdate)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountServiceServer).Update(ctx, in)
+		return srv.(ApiAccountServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service_account.AccountService/Update",
+		FullMethod: "/service_account.ApiAccount/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).Update(ctx, req.(*RequestGetAccount))
+		return srv.(ApiAccountServer).Update(ctx, req.(*RequestAccountUpdate))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AccountService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestGetAccount)
+func _ApiAccount_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestAccountDelete)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountServiceServer).Delete(ctx, in)
+		return srv.(ApiAccountServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service_account.AccountService/Delete",
+		FullMethod: "/service_account.ApiAccount/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).Delete(ctx, req.(*RequestGetAccount))
+		return srv.(ApiAccountServer).Delete(ctx, req.(*RequestAccountDelete))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
+// ApiAccount_ServiceDesc is the grpc.ServiceDesc for ApiAccount service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var AccountService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "service_account.AccountService",
-	HandlerType: (*AccountServiceServer)(nil),
+var ApiAccount_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "service_account.ApiAccount",
+	HandlerType: (*ApiAccountServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Insert",
-			Handler:    _AccountService_Insert_Handler,
+			Handler:    _ApiAccount_Insert_Handler,
 		},
 		{
-			MethodName: "Select",
-			Handler:    _AccountService_Select_Handler,
+			MethodName: "Find",
+			Handler:    _ApiAccount_Find_Handler,
 		},
 		{
 			MethodName: "Get",
-			Handler:    _AccountService_Get_Handler,
+			Handler:    _ApiAccount_Get_Handler,
 		},
 		{
 			MethodName: "Update",
-			Handler:    _AccountService_Update_Handler,
+			Handler:    _ApiAccount_Update_Handler,
 		},
 		{
 			MethodName: "Delete",
-			Handler:    _AccountService_Delete_Handler,
+			Handler:    _ApiAccount_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
