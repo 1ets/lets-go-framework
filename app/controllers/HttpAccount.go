@@ -14,8 +14,9 @@ import (
 func HttpAccountGet(g *gin.Context) {
 	var response interface{}
 	var err error
-	svcAccount := adapters.ApiAccount
 
+	// Call account service
+	svcAccount := adapters.ApiAccount
 	response, err = svcAccount.Get(g, &data.RequestAccountGet{})
 
 	lets.Response(g, response, err)
@@ -71,6 +72,60 @@ func HttpAccountRegister(g *gin.Context) {
 	response, err = svcAccount.Insert(g, &data.RequestAccountInsert{
 		Name:    request.Name,
 		Balance: float64(request.Balance),
+	})
+
+	lets.Response(g, response, err)
+}
+
+// HTTP Handler for get account information
+func HttpAccountUpdate(g *gin.Context) {
+	var response interface{}
+	var err error
+
+	// Get id from uri
+	var find structs.HttpAccountRequestFind
+	if err := g.BindUri(&find); err != nil {
+		lets.Response(g, response, err)
+		return
+	}
+
+	// Get id from body
+	var update structs.HttpAccountRequestUpdate
+	if err := g.Bind(&update); err != nil {
+		lets.Response(g, response, err)
+		return
+	}
+
+	// Call account service
+	svcAccount := adapters.ApiAccount
+	response, err = svcAccount.Update(g, &data.RequestAccountUpdate{
+		Where: data.AccountUpdateWhere{
+			Id: uint(find.Id),
+		},
+		Data: data.AccountUpdateData{
+			Name: update.Name,
+		},
+	})
+
+	lets.Response(g, response, err)
+}
+
+// HTTP Handler for get account information
+func HttpAccountRemove(g *gin.Context) {
+	var response interface{}
+	var err error
+
+	// Get id from uri
+	var find structs.HttpAccountRequestFind
+	if err := g.Bind(&find); err != nil {
+		lets.Response(g, response, err)
+		return
+	}
+
+	// Call account service
+	svcAccount := adapters.ApiAccount
+	response, err = svcAccount.Delete(g, &data.RequestAccountDelete{
+		Id: uint(find.Id),
 	})
 
 	lets.Response(g, response, err)

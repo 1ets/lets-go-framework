@@ -9,6 +9,8 @@ type HttpAccountRequestRegister struct {
 	Balance float64 `json:"balance"`
 }
 
+type HttpAccountRequestUpdate HttpAccountRequestRegister
+
 type HttpAccountResponseDefault struct {
 	Code    int    `json:"code,omitempty"`
 	Status  string `json:"status,omitempty"`

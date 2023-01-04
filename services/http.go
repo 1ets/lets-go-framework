@@ -22,6 +22,8 @@ func RouteHttpService(route *gin.Engine) {
 	example.GET("account", controllers.HttpAccountGet)
 	example.GET("account/:id", controllers.HttpAccountFind)
 	example.POST("account", controllers.HttpAccountRegister)
+	example.PATCH("account/:id", controllers.HttpAccountUpdate)
+	example.DELETE("account/:id", controllers.HttpAccountRemove)
 
 	// Transfers
 	example.GET("transfer", controllers.HttpAccountGet)
