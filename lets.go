@@ -16,6 +16,7 @@ var bootstrap = lets.Bootstrap{
 	OnMains: []func(){
 		boot.LoadHttpFramework,
 		boot.LoadGrpcFramework,
+		boot.LoadRabbitFramework,
 	},
 }
 
