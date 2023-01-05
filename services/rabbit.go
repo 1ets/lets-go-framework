@@ -1,13 +1,10 @@
 package services
 
-func RabbitExchange() {
-	// Reply
-}
+import (
+	"lets-go-framework/app/controllers"
+	"lets-go-framework/lets"
+)
 
-func RabbitExchangea() {
-
-}
-
-func RabbitExchangeb() {
-
+func RabbitEventHandler(r *lets.MessageEngine) {
+	r.Event("transfer-result", controllers.RabbitTransferResult)
 }
