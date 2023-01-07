@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"lets-go-framework/lets"
 	"lets-go-framework/lets/types"
 	"log"
 	"os"
@@ -17,7 +16,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-type Body struct {
+type MessageBody struct {
 	Event string      `json:"event"`
 	Data  interface{} `json:"data"`
 }
@@ -29,6 +28,13 @@ type Message struct {
 	CorrelationId string
 	Exchange      string
 	RoutingKey    string
+}
+
+type Event struct {
+	Exchange   string
+	RoutingKey string
+	Body       MessageBody
+	ReplyTo    string
 }
 
 func (m *Message) GetEventName() string {
@@ -58,7 +64,7 @@ func (m *Message) GetRoutingKey() string {
 type ServiceRabbit struct {
 	Dsn        types.IRabbitDsn
 	Consumer   types.IRabbitConsumer
-	Engine     lets.MessageEngine
+	Engine     MessageEngine
 	name       string
 	dsn        string
 	Connection *amqp091.Connection
@@ -202,7 +208,7 @@ func (rabbit *ServiceRabbit) listen() {
 }
 
 func (rabbit *ServiceRabbit) onMessage(d *amqp091.Delivery) {
-	var body Body
+	var body MessageBody
 	err := json.Unmarshal(d.Body, &body)
 	if err != nil {
 		log.Default().Println("Json Body Error: ", err.Error())
@@ -227,12 +233,12 @@ func (rabbit *ServiceRabbit) onMessage(d *amqp091.Delivery) {
 	rabbit.Engine.Call(m.EventName, &m)
 }
 
-func (rabbit *ServiceRabbit) Publish() error {
+func (rabbit *ServiceRabbit) Publish(ctx context.Context, event Event) error {
 	done := make(chan bool)
 	var (
-		ctx                  context.Context
-		exchange, routingKey string
-		body                 string
+	// ctx                  context.Context
+	// exchange, routingKey string
+	// body                 string
 	)
 
 	var publishes chan uint64 = nil
@@ -245,8 +251,8 @@ func (rabbit *ServiceRabbit) Publish() error {
 		// routingKey   = flag.String("key", "test-key", "AMQP routing key")
 		// body         = flag.String("body", "foobar", "Body of message")
 		// reliable     = flag.Bool("reliable", true, "Wait for the publisher confirmation before exiting")
-		reliable   = true
-		continuous = flag.Bool("continuous", false, "Keep publishing messages at a 1msg/sec rate")
+		reliable = false
+		// continuous = flag.Bool("continuous", false, "Keep publishing messages at a 1msg/sec rate")
 		// ErrLog     = log.New(os.Stderr, "[ERROR] ", log.LstdFlags|log.Lmsgprefix)
 		Log = log.New(os.Stdout, "[INFO] ", log.LstdFlags|log.Lmsgprefix)
 	)
@@ -271,15 +277,17 @@ func (rabbit *ServiceRabbit) Publish() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	body, _ := json.Marshal(event.Body)
+
 	for {
 		seqNo := rabbit.channel.GetNextPublishSeqNo()
 		Log.Printf("publishing %dB body (%q)", len(body), body)
 
 		if err := rabbit.channel.PublishWithContext(ctx,
-			exchange,   // publish to an exchange
-			routingKey, // routing to 0 or more queues
-			false,      // mandatory
-			false,      // immediate
+			event.Exchange,   // publish to an exchange
+			event.RoutingKey, // routing to 0 or more queues
+			false,            // mandatory
+			false,            // immediate
 			amqp091.Publishing{
 				Headers:         amqp091.Table{},
 				ContentType:     "text/plain",
@@ -298,7 +306,8 @@ func (rabbit *ServiceRabbit) Publish() error {
 			publishes <- seqNo
 		}
 
-		if *continuous {
+		// if *continuous {
+		if false {
 			select {
 			case <-done:
 				Log.Println("producer is stopping")
@@ -324,8 +333,9 @@ func SetupCloseHandler(done chan bool) {
 	}()
 }
 
+var m = make(map[uint64]bool)
+
 func confirmHandler(done chan bool, publishes chan uint64, confirms chan amqp091.Confirmation) {
-	m := make(map[uint64]bool)
 	for {
 		select {
 		case <-done:
@@ -337,7 +347,7 @@ func confirmHandler(done chan bool, publishes chan uint64, confirms chan amqp091
 		case confirmed := <-confirms:
 			if confirmed.DeliveryTag > 0 {
 				if confirmed.Ack {
-					fmt.Printf("confirmed delivery with delivery tag: %d", confirmed.DeliveryTag)
+					fmt.Printf("confirmed delivery with delivery tag: %d \n", confirmed.DeliveryTag)
 				} else {
 					fmt.Printf("failed delivery of delivery tag: %d", confirmed.DeliveryTag)
 				}

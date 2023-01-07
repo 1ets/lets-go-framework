@@ -1,7 +1,10 @@
 package adapters
 
-import "github.com/rabbitmq/amqp091-go"
+import (
+	"lets-go-framework/adapters/clients"
+	"lets-go-framework/lets/drivers"
+)
 
-func RabbitRegister(c *amqp091.Connection) {
-	eventTransaction.Connection = c
+func RabbitRegister(r *drivers.ServiceRabbit) {
+	clients.RabbitTransfer.Driver = r
 }

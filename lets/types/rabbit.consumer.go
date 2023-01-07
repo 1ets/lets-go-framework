@@ -1,6 +1,11 @@
 package types
 
-import "github.com/kataras/golog"
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/kataras/golog"
+)
 
 // Default configuration
 const (
@@ -16,6 +21,7 @@ type IRabbitConsumer interface {
 	GetExchangeType() string
 	GetRoutingKey() string
 	GetQueue() string
+	GenerateReplyTo() string
 }
 
 // Target host information.
@@ -63,6 +69,19 @@ func (rtm *RabbitConsumer) GetQueue() string {
 	}
 
 	return rtm.Queue
+}
+func (rtm *RabbitConsumer) GenerateReplyTo() string {
+	replyTo := map[string]string{
+		"exchange":    rtm.GetExchange(),
+		"routing_key": rtm.GetRoutingKey(),
+	}
+
+	_replyTo, err := json.Marshal(replyTo)
+	if err != nil {
+		fmt.Println("cant marshal replyTos")
+	}
+
+	return string(_replyTo)
 }
 
 func NewRabbitConsumer(exchange, routingKey, queue string) IRabbitConsumer {

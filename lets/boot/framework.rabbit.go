@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"lets-go-framework/adapters"
 	"lets-go-framework/configs"
-	"lets-go-framework/lets"
 	"lets-go-framework/lets/drivers"
 	"lets-go-framework/services"
 )
@@ -16,13 +15,13 @@ func LoadRabbitFramework() {
 	rabbit := drivers.ServiceRabbit{
 		Dsn:      configs.RabbitDsn,
 		Consumer: configs.RabbitConsumer,
-		Engine:   lets.MessageEngine{},
+		Engine:   drivers.MessageEngine{},
 	}
 
 	rabbit.Init()
 
 	services.RabbitEventHandler(&rabbit.Engine)
-	adapters.RabbitRegister(rabbit.Connection)
+	adapters.RabbitRegister(&rabbit)
 
 	var err error
 	err = rabbit.Connect()
