@@ -1,14 +1,20 @@
 package drivers
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"lets-go-framework/lets"
 	"lets-go-framework/lets/types"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/rabbitmq/amqp091-go"
+	"github.com/streadway/amqp"
 )
 
 type Body struct {
@@ -55,7 +61,7 @@ type ServiceRabbit struct {
 	Engine     lets.MessageEngine
 	name       string
 	dsn        string
-	conn       *amqp091.Connection
+	Connection *amqp091.Connection
 	channel    *amqp091.Channel
 	deliveries <-chan amqp091.Delivery
 	done       chan error
@@ -76,18 +82,18 @@ func (rabbit *ServiceRabbit) Connect() error {
 
 	log.Printf("dialing %q", rabbit.dsn)
 	var err error
-	rabbit.conn, err = amqp091.DialConfig(rabbit.dsn, config)
+	rabbit.Connection, err = amqp091.DialConfig(rabbit.dsn, config)
 	if err != nil {
 		return fmt.Errorf("dial: %s", err)
 	}
 
 	go func() {
-		log.Printf("closing: %s", <-rabbit.conn.NotifyClose(make(chan *amqp091.Error)))
+		log.Printf("closing: %s", <-rabbit.Connection.NotifyClose(make(chan *amqp091.Error)))
 	}()
 
 	log.Printf("got Connection, getting Channel")
 
-	rabbit.channel, err = rabbit.conn.Channel()
+	rabbit.channel, err = rabbit.Connection.Channel()
 	if err != nil {
 		return fmt.Errorf("channel: %s", err)
 	}
@@ -219,4 +225,127 @@ func (rabbit *ServiceRabbit) onMessage(d *amqp091.Delivery) {
 	}
 
 	rabbit.Engine.Call(m.EventName, &m)
+}
+
+func (rabbit *ServiceRabbit) Publish() error {
+	done := make(chan bool)
+	var (
+		ctx                  context.Context
+		exchange, routingKey string
+		body                 string
+	)
+
+	var publishes chan uint64 = nil
+	var confirms chan amqp091.Confirmation = nil
+
+	var (
+		// uri          = flag.String("uri", "amqp://guest:guest@localhost:5672/", "AMQP URI")
+		// exchangeName = flag.String("exchange", "test-exchange", "Durable AMQP exchange name")
+		// exchangeType = flag.String("exchange-type", "direct", "Exchange type - direct|fanout|topic|x-custom")
+		// routingKey   = flag.String("key", "test-key", "AMQP routing key")
+		// body         = flag.String("body", "foobar", "Body of message")
+		// reliable     = flag.Bool("reliable", true, "Wait for the publisher confirmation before exiting")
+		reliable   = true
+		continuous = flag.Bool("continuous", false, "Keep publishing messages at a 1msg/sec rate")
+		// ErrLog     = log.New(os.Stderr, "[ERROR] ", log.LstdFlags|log.Lmsgprefix)
+		Log = log.New(os.Stdout, "[INFO] ", log.LstdFlags|log.Lmsgprefix)
+	)
+
+	flag.Parse()
+
+	// Reliable publisher confirms require confirm.select support from the
+	// connection.
+	if reliable {
+		Log.Printf("enabling publisher confirms.")
+		if err := rabbit.channel.Confirm(false); err != nil {
+			return fmt.Errorf("Channel could not be put into confirm mode: %s", err)
+		}
+		// We'll allow for a few outstanding publisher confirms
+		publishes = make(chan uint64, 8)
+		confirms = rabbit.channel.NotifyPublish(make(chan amqp091.Confirmation, 1))
+
+		go confirmHandler(done, publishes, confirms)
+	}
+
+	Log.Println("declared Exchange, publishing messages")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	for {
+		seqNo := rabbit.channel.GetNextPublishSeqNo()
+		Log.Printf("publishing %dB body (%q)", len(body), body)
+
+		if err := rabbit.channel.PublishWithContext(ctx,
+			exchange,   // publish to an exchange
+			routingKey, // routing to 0 or more queues
+			false,      // mandatory
+			false,      // immediate
+			amqp091.Publishing{
+				Headers:         amqp091.Table{},
+				ContentType:     "text/plain",
+				ContentEncoding: "",
+				Body:            []byte(body),
+				DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
+				Priority:        0,              // 0-9
+				// a bunch of application/implementation-specific fields
+			},
+		); err != nil {
+			return fmt.Errorf("Exchange Publish: %s", err)
+		}
+
+		Log.Printf("published %dB OK", len(body))
+		if reliable {
+			publishes <- seqNo
+		}
+
+		if *continuous {
+			select {
+			case <-done:
+				Log.Println("producer is stopping")
+				return nil
+			case <-time.After(time.Second):
+				continue
+			}
+		} else {
+			break
+		}
+	}
+
+	return nil
+}
+
+func SetupCloseHandler(done chan bool) {
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		done <- true
+		fmt.Printf("Ctrl+C pressed in Terminal")
+	}()
+}
+
+func confirmHandler(done chan bool, publishes chan uint64, confirms chan amqp091.Confirmation) {
+	m := make(map[uint64]bool)
+	for {
+		select {
+		case <-done:
+			fmt.Println("confirmHandler is stopping")
+			return
+		case publishSeqNo := <-publishes:
+			fmt.Printf("waiting for confirmation of %d", publishSeqNo)
+			m[publishSeqNo] = false
+		case confirmed := <-confirms:
+			if confirmed.DeliveryTag > 0 {
+				if confirmed.Ack {
+					fmt.Printf("confirmed delivery with delivery tag: %d", confirmed.DeliveryTag)
+				} else {
+					fmt.Printf("failed delivery of delivery tag: %d", confirmed.DeliveryTag)
+				}
+				delete(m, confirmed.DeliveryTag)
+			}
+		}
+		if len(m) > 1 {
+			fmt.Printf("outstanding confirmations: %d", len(m))
+		}
+	}
 }

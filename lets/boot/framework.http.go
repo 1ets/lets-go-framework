@@ -27,7 +27,7 @@ func (http *httpService) Serve() {
 	http.Server.Run(ServePort)
 }
 
-// Define http service host and port
+// Start http service
 func LoadHttpFramework() {
 	fmt.Println("httpService.LoadHttpFramework()")
 

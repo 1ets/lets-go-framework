@@ -2,6 +2,7 @@ package boot
 
 import (
 	"fmt"
+	"lets-go-framework/adapters"
 	"lets-go-framework/configs"
 	"lets-go-framework/lets"
 	"lets-go-framework/lets/drivers"
@@ -21,6 +22,7 @@ func LoadRabbitFramework() {
 	rabbit.Init()
 
 	services.RabbitEventHandler(&rabbit.Engine)
+	adapters.RabbitRegister(rabbit.Connection)
 
 	var err error
 	err = rabbit.Connect()

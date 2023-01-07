@@ -26,6 +26,7 @@ func RouteHttpService(route *gin.Engine) {
 	example.DELETE("account/:id", controllers.HttpAccountRemove)
 
 	// Transfers
-	example.GET("transfer", controllers.HttpAccountGet)
-	example.POST("transfer/success", controllers.HttpAccountGet)
+	example.GET("transaction", controllers.HttpTransactionGet)
+	example.POST("transfer/success", controllers.HttpTransferSuccess)
+	example.POST("transfer/failed", controllers.HttpTransferFailed)
 }
