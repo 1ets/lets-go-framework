@@ -9,13 +9,13 @@ type FilterTransaction struct {
 }
 
 type EventTransfer struct {
-	SenderId   int     `json:"id_sender"`
-	ReceiverId int     `json:"id_receiver"`
+	SenderId   uint    `json:"id_sender"`
+	ReceiverId uint    `json:"id_receiver"`
 	Amount     float64 `json:"amount"`
 }
 
 type EventTransferResult struct {
-	SenderId   int
-	ReceiverId int
-	Amount     float32
+	Code    uint16 `json:"code"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
