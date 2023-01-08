@@ -236,10 +236,10 @@ func (rabbit *ServiceRabbit) onMessage(d *amqp091.Delivery) {
 // Publish event
 func (rabbit *ServiceRabbit) Publish(event Event) error {
 	var (
-		reliable                            = true // Wait for the publisher confirmation before exiting
-		publishes chan uint64               = nil  // Total published event
-		confirms  chan amqp091.Confirmation = nil  // Published event confirmation
-		Log                                 = log.New(os.Stdout, "[INFO] ", log.LstdFlags|log.Lmsgprefix)
+		// reliable              = true // Wait for the publisher confirmation before exiting
+		// publishes chan uint64 = nil  // Total published event
+		// confirms  chan amqp091.Confirmation = nil  // Published event confirmation
+		Log = log.New(os.Stdout, "[INFO] ", log.LstdFlags|log.Lmsgprefix)
 		// ErrLog     = log.New(os.Stderr, "[ERROR] ", log.LstdFlags|log.Lmsgprefix)
 	)
 
@@ -247,17 +247,17 @@ func (rabbit *ServiceRabbit) Publish(event Event) error {
 
 	// Reliable publisher confirms require confirm.select support from the
 	// connection.
-	if reliable {
-		Log.Printf("enabling publisher confirms.")
-		if err := rabbit.channel.Confirm(false); err != nil {
-			return fmt.Errorf("channel could not be put into confirm mode: %s", err)
-		}
-		// We'll allow for a few outstanding publisher confirms
-		publishes = make(chan uint64, 8)
-		confirms = rabbit.channel.NotifyPublish(make(chan amqp091.Confirmation, 1))
+	// if reliable {
+	// 	Log.Printf("enabling publisher confirms.")
+	// 	if err := rabbit.channel.Confirm(false); err != nil {
+	// 		return fmt.Errorf("channel could not be put into confirm mode: %s", err)
+	// 	}
+	// 	// We'll allow for a few outstanding publisher confirms
+	// publishes = make(chan uint64, 8)
+	// 	// confirms = rabbit.channel.NotifyPublish(make(chan amqp091.Confirmation, 1))
 
-		go confirmHandler(publishes, confirms)
-	}
+	// 	// go confirmHandler(publishes, confirms)
+	// }
 
 	Log.Println("declared Exchange, publishing messages")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -265,33 +265,36 @@ func (rabbit *ServiceRabbit) Publish(event Event) error {
 
 	body, _ := json.Marshal(event.Body)
 
-	for {
-		seqNo := rabbit.channel.GetNextPublishSeqNo()
-		Log.Printf("publishing %dB body (%q)", len(body), body)
+	// for {
+	// seqNo := rabbit.channel.GetNextPublishSeqNo()
+	Log.Printf("publishing %dB body (%q)", len(body), body)
 
-		if err := rabbit.channel.PublishWithContext(ctx,
-			event.Exchange,   // Exchange
-			event.RoutingKey, // RoutingKey or queues
-			false,            // Mandatory
-			false,            // Immediate
-			amqp091.Publishing{
-				Headers:         amqp091.Table{},
-				ContentType:     "application/json",
-				ContentEncoding: "",
-				Body:            []byte(body),
-				DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
-				Priority:        0,              // 0-9
-				// a bunch of application/implementation-specific fields
-			},
-		); err != nil {
-			return fmt.Errorf("exchange Publish: %s", err)
-		}
-
-		Log.Printf("published %dB OK", len(body))
-		if reliable {
-			publishes <- seqNo
-		}
+	if err := rabbit.channel.PublishWithContext(ctx,
+		event.Exchange,   // Exchange
+		event.RoutingKey, // RoutingKey or queues
+		false,            // Mandatory
+		false,            // Immediate
+		amqp091.Publishing{
+			Headers:         amqp091.Table{},
+			ContentType:     "application/json",
+			ContentEncoding: "",
+			ReplyTo:         event.ReplyTo,
+			Body:            []byte(body),
+			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
+			Priority:        0,              // 0-9
+			// a bunch of application/implementation-specific fields
+		},
+	); err != nil {
+		return fmt.Errorf("exchange Publish: %s", err)
 	}
+
+	Log.Printf("published %dB OK", len(body))
+	// if reliable {
+	// 	publishes <- seqNo
+	// }
+	// }
+
+	return nil
 }
 
 func SetupCloseHandler(done chan bool) {
@@ -304,28 +307,28 @@ func SetupCloseHandler(done chan bool) {
 	}()
 }
 
-var m = make(map[uint64]bool)
+// var m = make(map[uint64]bool)
 
-func confirmHandler(publishes chan uint64, confirms chan amqp091.Confirmation) {
-	for {
-		select {
-		case publishSeqNo := <-publishes:
-			fmt.Printf("waiting for confirmation of %d", publishSeqNo)
-			m[publishSeqNo] = false
-		case confirmed := <-confirms:
-			if confirmed.DeliveryTag > 0 {
-				if confirmed.Ack {
-					fmt.Printf("confirmed delivery with delivery tag: %d \n", confirmed.DeliveryTag)
-				} else {
-					fmt.Printf("failed delivery of delivery tag: %d", confirmed.DeliveryTag)
-				}
-				delete(m, confirmed.DeliveryTag)
-			}
-		}
-		if len(m) > 1 {
-			fmt.Printf("outstanding confirmations: %d", len(m))
-		} else {
-			break
-		}
-	}
-}
+// func confirmHandler(publishes chan uint64, confirms chan amqp091.Confirmation) {
+// 	for {
+// 		select {
+// 		case publishSeqNo := <-publishes:
+// 			fmt.Printf("waiting for confirmation of %d", publishSeqNo)
+// 			m[publishSeqNo] = false
+// 		case confirmed := <-confirms:
+// 			if confirmed.DeliveryTag > 0 {
+// 				if confirmed.Ack {
+// 					fmt.Printf("confirmed delivery with delivery tag: %d \n", confirmed.DeliveryTag)
+// 				} else {
+// 					fmt.Printf("failed delivery of delivery tag: %d", confirmed.DeliveryTag)
+// 				}
+// 				delete(m, confirmed.DeliveryTag)
+// 			}
+// 		}
+// 		if len(m) > 1 {
+// 			fmt.Printf("outstanding confirmations: %d", len(m))
+// 		} else {
+// 			break
+// 		}
+// 	}
+// }
