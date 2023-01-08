@@ -1,7 +1,6 @@
 package clients
 
 import (
-	"context"
 	"fmt"
 	"lets-go-framework/adapters/data"
 	"lets-go-framework/lets/drivers"
@@ -14,7 +13,7 @@ type rabbitTransfer struct {
 	Driver *drivers.ServiceRabbit
 }
 
-func (r *rabbitTransfer) Transfer(ctx context.Context, data *data.EventTransfer) error {
+func (r *rabbitTransfer) Transfer(data *data.EventTransfer) error {
 	rabbit := r.Driver
 
 	event := drivers.Event{
@@ -27,7 +26,7 @@ func (r *rabbitTransfer) Transfer(ctx context.Context, data *data.EventTransfer)
 		},
 	}
 
-	err := rabbit.Publish(ctx, event)
+	err := rabbit.Publish(event)
 	if err != nil {
 		fmt.Println("Cant publish to rabbit: ", err.Error())
 	}

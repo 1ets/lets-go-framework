@@ -24,7 +24,7 @@ func HttpTransferSuccess(g *gin.Context) {
 
 	// Call account service
 	svcTransaction := clients.RabbitTransfer
-	err = svcTransaction.Transfer(g, &data.EventTransfer{
+	err = svcTransaction.Transfer(&data.EventTransfer{
 		SenderId:   request.SenderId,
 		ReceiverId: request.ReceiverId,
 		Amount:     request.Amount,
