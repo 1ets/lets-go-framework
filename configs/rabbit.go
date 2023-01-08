@@ -12,7 +12,7 @@ var RabbitDsn types.IRabbitDsn
 var RabbitConsumer types.IRabbitConsumer
 
 // Callable function for initialize all libraries configuration.
-func Initialize() {
+func InitializeRabbitMQ() {
 	RabbitDsn = &types.RabbitDsn{
 		Host:        os.Getenv("RQ_HOST"),
 		Port:        os.Getenv("RQ_PORT"),

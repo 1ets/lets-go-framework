@@ -11,7 +11,7 @@ import (
 var bootstrap = lets.Bootstrap{
 	OnInits: []func(){
 		boot.LoadEnv,
-		configs.Initialize,
+		configs.InitializeRabbitMQ, // TODO: boot.Configs
 	},
 	OnMains: []func(){
 		boot.LoadHttpFramework,
