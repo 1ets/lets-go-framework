@@ -7,4 +7,5 @@ import (
 
 func RabbitEventHandler(r *drivers.MessageEngine) {
 	r.Event("transfer-result", servers.RabbitTransferResult)
+	r.Event("balance-transfer-result", servers.RabbitBalanceResult)
 }

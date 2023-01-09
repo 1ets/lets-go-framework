@@ -16,9 +16,9 @@ const (
 	StateTransferSucceed
 	StateTransferFailed
 	StateTransferCanceled
-	StateBalanceCommitSucceed
-	StateBalanceCommitFailed
-	StateBalanceCommitCanceled
+	StateBalanceTranferSucceed
+	StateBalanceTranferFailed
+	StateBalanceTranferCanceled
 	StateNotifyUserInit
 	StateNotifyUserSucceed
 	StateNotifyUserFailed
@@ -40,8 +40,11 @@ type TransferStart struct {
 var WaitTransferStart = make(map[string](chan structs.EventTransferResult))
 
 func (t *TransferStart) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
+	fmt.Println("TransferStart")
+
 	var correlationId = fmt.Sprintf("%v", time.Now().Unix())
 	WaitTransferStart[correlationId] = make(chan structs.EventTransferResult)
+	defer delete(WaitTransferStart, correlationId)
 
 	// Call account service
 	svcTransaction := clients.RabbitTransfer
@@ -61,8 +64,6 @@ func (t *TransferStart) Execute(ctx context.Context, tx saga.Transaction) (saga.
 	t.bucket.CrTrxId = data.CrTransactionId
 	t.bucket.DbTrxId = data.DbTransactionId
 
-	delete(WaitTransferStart, correlationId)
-
 	return &ActivityTransfer{
 		state: StateTransferSucceed,
 	}, nil
@@ -81,22 +82,23 @@ func (a *TransferCancel) Execute(ctx context.Context, tx saga.Transaction) (saga
 	}, nil
 }
 
-type BalanceCommitStart struct {
+type BalanceTransferStart struct {
 	bucket *DataTransferEvent
 }
 
 // Make it public so can accessed by controller handler
-var WaitBalanceCommitStart = make(map[string](chan structs.EventTransferResult))
+var WaitBalanceTransfer = make(map[string](chan structs.EventBalanceTransferResult))
 
-func (t *BalanceCommitStart) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
+func (t *BalanceTransferStart) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
 	fmt.Println("BalanceCommitStart")
 
 	var correlationId = fmt.Sprintf("%v", time.Now().Unix())
-	WaitBalanceCommitStart[correlationId] = make(chan structs.EventTransferResult)
+	WaitBalanceTransfer[correlationId] = make(chan structs.EventBalanceTransferResult)
+	defer delete(WaitBalanceTransfer, correlationId)
 
 	// Call account service
-	svcTransaction := clients.RabbitTransfer
-	err := svcTransaction.BalanceCommit(correlationId, &data.EventTransfer{
+	svcTraBalance := clients.RabbitBalance
+	err := svcTraBalance.BalanceTransfer(correlationId, &data.EventTransfer{
 		SenderId:   t.bucket.SenderId,
 		ReceiverId: t.bucket.ReceiverId,
 		Amount:     t.bucket.Amount,
@@ -108,22 +110,26 @@ func (t *BalanceCommitStart) Execute(ctx context.Context, tx saga.Transaction) (
 		}, err
 	}
 
-	var data = <-WaitTransferStart[correlationId]
-	t.bucket.CrTrxId = data.CrTransactionId
-	t.bucket.DbTrxId = data.DbTransactionId
+	var data = <-WaitBalanceTransfer[correlationId]
+	t.bucket.CrBalance = data.CrBalance
+	t.bucket.DbBalance = data.DbBalance
 
-	delete(WaitTransferStart, correlationId)
+	if data.CrBalance <= 0 || data.DbBalance <= 0 {
+		return &ActivityTransfer{
+			state: StateBalanceTranferFailed,
+		}, nil
+	}
 
 	return &ActivityTransfer{
-		state: StateBalanceCommitSucceed,
+		state: StateBalanceTranferSucceed,
 	}, nil
 }
 
-type BalanceCommitCancel struct {
+type BalanceTransferCancel struct {
 	bucket *DataTransferEvent
 }
 
-func (a *BalanceCommitCancel) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
+func (a *BalanceTransferCancel) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
 	fmt.Println("BalanceCommitCancel")
 	// Publish to
 
@@ -149,6 +155,8 @@ type DataTransferEvent struct {
 	Amount     float64
 	CrTrxId    uint
 	DbTrxId    uint
+	CrBalance  float64
+	DbBalance  float64
 }
 
 // Define saga transfer
@@ -175,15 +183,15 @@ func SagaTransfer(data *structs.HttpTransferRequest) (state int, err error) {
 				RolledBackState: StateTransferCanceled,
 			},
 			{
-				Aggregator: &BalanceCommitStart{
+				Aggregator: &BalanceTransferStart{
 					bucket: &bucket,
 				},
-				SuccessState: StateBalanceCommitSucceed,
-				FailureState: StateBalanceCommitFailed,
-				Compensation: &BalanceCommitCancel{
+				SuccessState: StateBalanceTranferSucceed,
+				FailureState: StateBalanceTranferFailed,
+				Compensation: &BalanceTransferCancel{
 					bucket: &bucket,
 				},
-				RolledBackState: StateBalanceCommitCanceled,
+				RolledBackState: StateBalanceTranferCanceled,
 			},
 			{
 				Aggregator:      &NotifyUserStart{},

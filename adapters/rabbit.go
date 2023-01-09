@@ -7,4 +7,5 @@ import (
 
 func RabbitRegister(r *drivers.ServiceRabbit) {
 	clients.RabbitTransfer.Driver = r
+	clients.RabbitBalance.Driver = r
 }
