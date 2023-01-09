@@ -1,10 +1,10 @@
 package services
 
 import (
-	"lets-go-framework/app/controllers"
+	"lets-go-framework/adapters/servers"
 	"lets-go-framework/lets/drivers"
 )
 
 func RabbitEventHandler(r *drivers.MessageEngine) {
-	r.Event("transfer-result", controllers.RabbitTransferResult)
+	r.Event("transfer-result", servers.RabbitTransferResult)
 }

@@ -1,9 +1,10 @@
 package controllers
 
 import (
+	"fmt"
 	"lets-go-framework/adapters"
-	"lets-go-framework/adapters/clients"
 	"lets-go-framework/adapters/data"
+	"lets-go-framework/app/orchestrator"
 	"lets-go-framework/app/structs"
 	"lets-go-framework/lets"
 
@@ -22,13 +23,9 @@ func HttpTransferSuccess(g *gin.Context) {
 		return
 	}
 
-	// Call account service
-	svcTransaction := clients.RabbitTransfer
-	err = svcTransaction.Transfer(&data.EventTransfer{
-		SenderId:   request.SenderId,
-		ReceiverId: request.ReceiverId,
-		Amount:     request.Amount,
-	})
+	state, err := orchestrator.SagaTransfer(&request)
+
+	fmt.Println("State: %v", state)
 
 	lets.Response(g, response, err)
 }
