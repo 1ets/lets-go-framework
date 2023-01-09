@@ -31,10 +31,11 @@ type Message struct {
 }
 
 type Event struct {
-	Exchange   string
-	RoutingKey string
-	Body       MessageBody
-	ReplyTo    string
+	Exchange      string
+	RoutingKey    string
+	Body          MessageBody
+	ReplyTo       string
+	CorrelationId string
 }
 
 func (m *Message) GetEventName() string {
@@ -282,6 +283,7 @@ func (rabbit *ServiceRabbit) Publish(event Event) error {
 			Body:            []byte(body),
 			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
 			Priority:        0,              // 0-9
+			CorrelationId:   event.CorrelationId,
 			// a bunch of application/implementation-specific fields
 		},
 	); err != nil {
