@@ -1,14 +1,15 @@
 package controllers
 
 import (
-	"fmt"
 	"lets-go-framework/adapters"
 	"lets-go-framework/adapters/data"
 	"lets-go-framework/app/orchestrator"
 	"lets-go-framework/app/structs"
 	"lets-go-framework/lets"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kataras/golog"
 )
 
 // HTTP Handler for get account information
@@ -24,8 +25,22 @@ func HttpTransferSuccess(g *gin.Context) {
 	}
 
 	state, err := orchestrator.SagaTransfer(&request)
+	if err != nil {
+		golog.Error(err.Error())
+		return
+	}
 
-	fmt.Println("State: %v", state)
+	golog.Infof("State: %v", state)
+
+	if state == orchestrator.StateTransferCanceled {
+		response = structs.DefaultHttpResponse{
+			Code:    http.StatusNotAcceptable,
+			Status:  "failed",
+			Message: "Transfer was canceled",
+		}
+		lets.Response(g, response, err)
+		return
+	}
 
 	lets.Response(g, response, err)
 }
