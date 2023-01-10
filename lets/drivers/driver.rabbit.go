@@ -260,7 +260,7 @@ func (rabbit *ServiceRabbit) Publish(event Event) error {
 	// 	// go confirmHandler(publishes, confirms)
 	// }
 
-	Log.Println("declared Exchange, publishing messages")
+	// Log.Println("declared Exchange, publishing messages")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -268,7 +268,7 @@ func (rabbit *ServiceRabbit) Publish(event Event) error {
 
 	// for {
 	// seqNo := rabbit.channel.GetNextPublishSeqNo()
-	Log.Printf("publishing %dB body (%q)", len(body), body)
+	// Log.Printf("publishing %dB body (%q)", len(body), body)
 
 	if err := rabbit.channel.PublishWithContext(ctx,
 		event.Exchange,   // Exchange
