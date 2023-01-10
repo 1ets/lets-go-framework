@@ -35,7 +35,7 @@ func (r *rabbitTransfer) Transfer(correlationId string, data *data.EventTransfer
 	return nil
 }
 
-func (r *rabbitTransfer) TransferRollback(correlationId string, data *data.EventTransfer) error {
+func (r *rabbitTransfer) TransferRollback(data *data.EventTransferRollback) error {
 	rabbit := r.Driver
 
 	event := drivers.Event{
@@ -46,7 +46,6 @@ func (r *rabbitTransfer) TransferRollback(correlationId string, data *data.Event
 			Event: "transfer-rollback",
 			Data:  data,
 		},
-		CorrelationId: correlationId,
 	}
 
 	err := rabbit.Publish(event)
