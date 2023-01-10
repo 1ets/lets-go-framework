@@ -9,3 +9,5 @@ type EventBalanceTransferResult struct {
 	CrBalance float64 `json:"cr_balance"`
 	DbBalance float64 `json:"db_balance"`
 }
+
+type EventTransferRollbackResult struct{}
