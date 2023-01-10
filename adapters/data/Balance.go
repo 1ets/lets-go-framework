@@ -10,3 +10,13 @@ type EventTransferResult struct {
 	CrTransactionId uint `json:"cr_transaction_id"`
 	DbTransactionId uint `json:"db_transaction_id"`
 }
+
+type EventTransferRollback struct {
+	CrTransactionId uint `json:"cr_transaction_id"`
+	DbTransactionId uint `json:"db_transaction_id"`
+}
+
+type EventTransferRollbackResult struct {
+	CrTransactionId uint `json:"cr_transaction_id"`
+	DbTransactionId uint `json:"db_transaction_id"`
+}
