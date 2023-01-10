@@ -69,17 +69,24 @@ func (t *TransferStart) Execute(ctx context.Context, tx saga.Transaction) (saga.
 	}, nil
 }
 
-type TransferCancel struct {
+// Rollback state
+type TransferRollback struct {
 	bucket *DataTransferEvent
 }
 
-func (a *TransferCancel) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
-	fmt.Println("TransferCancel")
-	// Publish to
+func (t *TransferRollback) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
+	fmt.Println("TransferRollback")
+
+	// Call transaction service
+	svcTransaction := clients.RabbitTransfer
+	err := svcTransaction.TransferRollback(&data.EventTransferRollback{
+		CrTransactionId: t.bucket.CrTrxId,
+		DbTransactionId: t.bucket.DbTrxId,
+	})
 
 	return &ActivityTransfer{
 		state: StateTransferCanceled,
-	}, nil
+	}, err
 }
 
 type BalanceTransferStart struct {
@@ -160,7 +167,7 @@ type DataTransferEvent struct {
 }
 
 // Define saga transfer
-func SagaTransfer(data *structs.HttpTransferRequest) (state int, err error) {
+func SagaTransfer(data *structs.HttpTransferRequest) (state saga.State, err error) {
 	// Create data bucket
 	bucket := DataTransferEvent{
 		SenderId:   data.SenderId,
@@ -177,7 +184,7 @@ func SagaTransfer(data *structs.HttpTransferRequest) (state int, err error) {
 				},
 				SuccessState: StateTransferSucceed,
 				FailureState: StateTransferFailed,
-				Compensation: &TransferCancel{
+				Compensation: &TransferRollback{
 					bucket: &bucket,
 				},
 				RolledBackState: StateTransferCanceled,
@@ -219,6 +226,8 @@ func SagaTransfer(data *structs.HttpTransferRequest) (state int, err error) {
 	if finalTx.State() == StateTransferCanceled {
 		fmt.Println("OK")
 	}
+
+	state = finalTx.State()
 
 	return
 }
