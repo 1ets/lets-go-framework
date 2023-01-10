@@ -11,6 +11,7 @@ func RabbitBalanceResult(correlationId string, data *structs.EventBalanceTransfe
 	for index, message := range orchestrator.WaitBalanceTransfer {
 		if index == correlationId {
 			message <- *data
+			return
 		}
 	}
 	golog.Error("Cant find correlation id")
@@ -20,6 +21,7 @@ func RabbitBalanceRollbackResult(correlationId string, data *structs.EventTransf
 	for index, message := range orchestrator.WaitTransferStart {
 		if index == correlationId {
 			message <- *data
+			return
 		}
 	}
 	golog.Error("Cant find correlation id")
