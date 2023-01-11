@@ -41,7 +41,6 @@ func (r *rabbitTransfer) TransferRollback(data *data.EventTransferRollback) erro
 	event := drivers.Event{
 		Exchange:   rabbit.Consumer.GetExchange(),
 		RoutingKey: os.Getenv("RQ_ROUTING_KEY_TRANSFER"),
-		ReplyTo:    rabbit.Consumer.GenerateReplyTo(),
 		Body: drivers.MessageBody{
 			Event: "transfer-rollback",
 			Data:  data,
