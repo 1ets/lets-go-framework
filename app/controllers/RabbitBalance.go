@@ -18,7 +18,7 @@ func RabbitBalanceResult(correlationId string, data *structs.EventBalanceTransfe
 }
 
 func RabbitBalanceRollbackResult(correlationId string, data *structs.EventTransferResult) {
-	for index, message := range orchestrator.WaitTransferStart {
+	for index, message := range orchestrator.WaitTransfer {
 		if index == correlationId {
 			message <- *data
 			return

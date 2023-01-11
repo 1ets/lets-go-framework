@@ -19,7 +19,6 @@ const (
 	StateBalanceTranferSucceed
 	StateBalanceTranferFailed
 	StateBalanceTranferCanceled
-	StateNotifyUserInit
 	StateNotifyUserSucceed
 	StateNotifyUserFailed
 	StateNotifyUserRetry
@@ -33,18 +32,18 @@ func (t *ActivityTransfer) State() saga.State {
 	return t.state
 }
 
-type TransferStart struct {
+type Transfer struct {
 	bucket *DataTransferEvent
 }
 
-var WaitTransferStart = make(map[string](chan structs.EventTransferResult))
+var WaitTransfer = make(map[string](chan structs.EventTransferResult))
 
-func (t *TransferStart) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
-	fmt.Println("TransferStart")
+func (t *Transfer) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
+	fmt.Println("Transfer")
 
 	var correlationId = fmt.Sprintf("%v", time.Now().Unix())
-	WaitTransferStart[correlationId] = make(chan structs.EventTransferResult)
-	defer delete(WaitTransferStart, correlationId)
+	WaitTransfer[correlationId] = make(chan structs.EventTransferResult)
+	defer delete(WaitTransfer, correlationId)
 
 	// Call account service
 	svcTransaction := clients.RabbitTransfer
@@ -60,7 +59,7 @@ func (t *TransferStart) Execute(ctx context.Context, tx saga.Transaction) (saga.
 		}, err
 	}
 
-	var data = <-WaitTransferStart[correlationId]
+	var data = <-WaitTransfer[correlationId]
 	t.bucket.CrTrxId = data.CrTransactionId
 	t.bucket.DbTrxId = data.DbTransactionId
 
@@ -89,14 +88,14 @@ func (t *TransferRollback) Execute(ctx context.Context, tx saga.Transaction) (sa
 	}, err
 }
 
-type BalanceTransferStart struct {
+type BalanceTransfer struct {
 	bucket *DataTransferEvent
 }
 
 // Make it public so can accessed by controller handler
 var WaitBalanceTransfer = make(map[string](chan structs.EventBalanceTransferResult))
 
-func (t *BalanceTransferStart) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
+func (t *BalanceTransfer) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
 	fmt.Println("BalanceCommitStart")
 
 	var correlationId = fmt.Sprintf("%v", time.Now().Unix())
@@ -104,8 +103,8 @@ func (t *BalanceTransferStart) Execute(ctx context.Context, tx saga.Transaction)
 	defer delete(WaitBalanceTransfer, correlationId)
 
 	// Call account service
-	svcTraBalance := clients.RabbitBalance
-	err := svcTraBalance.BalanceTransfer(correlationId, &data.EventTransfer{
+	svcBalance := clients.RabbitBalance
+	err := svcBalance.BalanceTransfer(correlationId, &data.EventTransfer{
 		SenderId:   t.bucket.SenderId,
 		ReceiverId: t.bucket.ReceiverId,
 		Amount:     t.bucket.Amount,
@@ -117,11 +116,21 @@ func (t *BalanceTransferStart) Execute(ctx context.Context, tx saga.Transaction)
 		}, err
 	}
 
-	var data = <-WaitBalanceTransfer[correlationId]
-	t.bucket.CrBalance = data.CrBalance
-	t.bucket.DbBalance = data.DbBalance
+	var response = <-WaitBalanceTransfer[correlationId]
+	t.bucket.CrBalance = response.CrBalance
+	t.bucket.DbBalance = response.DbBalance
 
-	if data.CrBalance <= 0 || data.DbBalance <= 0 {
+	// fmt.Printf("if %f	<= 0 || %f <= 0 {", response.CrBalance, response.DbBalance)
+
+	if response.CrBalance <= 0 || response.DbBalance <= 0 {
+		err := svcBalance.BalanceRollback(&data.EventTransfer{
+			SenderId:   t.bucket.SenderId,
+			ReceiverId: t.bucket.ReceiverId,
+			Amount:     t.bucket.Amount,
+		})
+
+		fmt.Println(err)
+
 		return &ActivityTransfer{
 			state: StateBalanceTranferFailed,
 		}, nil
@@ -132,24 +141,49 @@ func (t *BalanceTransferStart) Execute(ctx context.Context, tx saga.Transaction)
 	}, nil
 }
 
-type BalanceTransferCancel struct {
+type BalanceRollback struct {
 	bucket *DataTransferEvent
 }
 
-func (a *BalanceTransferCancel) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
-	fmt.Println("BalanceCommitCancel")
-	// Publish to
+func (t *BalanceRollback) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
+	fmt.Println("BalanceRollback")
+
+	// Call account service
+	svcBalance := clients.RabbitBalance
+	err := svcBalance.BalanceRollback(&data.EventTransfer{
+		SenderId:   t.bucket.SenderId,
+		ReceiverId: t.bucket.ReceiverId,
+		Amount:     t.bucket.Amount,
+	})
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	return &ActivityTransfer{
-		state: StateTransferCanceled,
+		state: StateBalanceTranferCanceled,
 	}, nil
 }
 
-type NotifyUserStart struct{}
+type NotifyUserStart struct {
+	bucket *DataTransferEvent
+}
 
 func (a *NotifyUserStart) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
 	fmt.Println("NotifyUserStart")
-	// Publish to
+
+	// Call account service
+	svcNotification := clients.RabbitNotification
+	err := svcNotification.Notify(&data.EventNotification{
+		SenderId:   a.bucket.SenderId,
+		ReceiverId: a.bucket.ReceiverId,
+		Amount:     a.bucket.Amount,
+		Status:     "SUCCESS",
+	})
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	return &ActivityTransfer{
 		state: StateNotifyUserSucceed,
@@ -179,7 +213,7 @@ func SagaTransfer(data *structs.HttpTransferRequest) (state saga.State, err erro
 		InitState: StateTransferInit,
 		Activities: []saga.Activity{
 			{
-				Aggregator: &TransferStart{
+				Aggregator: &Transfer{
 					bucket: &bucket,
 				},
 				SuccessState: StateTransferSucceed,
@@ -190,19 +224,21 @@ func SagaTransfer(data *structs.HttpTransferRequest) (state saga.State, err erro
 				RolledBackState: StateTransferCanceled,
 			},
 			{
-				Aggregator: &BalanceTransferStart{
+				Aggregator: &BalanceTransfer{
 					bucket: &bucket,
 				},
 				SuccessState: StateBalanceTranferSucceed,
 				FailureState: StateBalanceTranferFailed,
-				Compensation: &BalanceTransferCancel{
+				Compensation: &BalanceRollback{
 					bucket: &bucket,
 				},
 				RolledBackState: StateBalanceTranferCanceled,
 			},
 			{
-				Aggregator:      &NotifyUserStart{},
-				SuccessState:    StateNotifyUserInit,
+				Aggregator: &NotifyUserStart{
+					bucket: &bucket,
+				},
+				SuccessState:    StateNotifyUserSucceed,
 				FailureState:    StateNotifyUserFailed,
 				RolledBackState: StateNotifyUserRetry,
 			},
