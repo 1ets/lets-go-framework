@@ -27,6 +27,6 @@ func RouteHttpService(route *gin.Engine) {
 
 	// Transfers
 	example.GET("transaction", controllers.HttpTransactionGet)
-	example.POST("transfer/success", controllers.HttpTransferSuccess)
-	example.POST("transfer/failed", controllers.HttpTransferFailed)
+	example.POST("transfer-stateful", controllers.HttpTransferStatefull)
+	example.POST("transfer-stateless", controllers.HttpTransferStateless)
 }

@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"lets-go-framework/adapters"
-	"lets-go-framework/adapters/data"
 	"lets-go-framework/app/orchestrator"
 	"lets-go-framework/app/structs"
 	"lets-go-framework/lets"
@@ -12,8 +10,8 @@ import (
 	"github.com/kataras/golog"
 )
 
-// HTTP Handler for get account information
-func HttpTransferSuccess(g *gin.Context) {
+// HTTP Handler for normal transfer
+func HttpTransferStateless(g *gin.Context) {
 	var response interface{}
 	var err error
 
@@ -22,6 +20,12 @@ func HttpTransferSuccess(g *gin.Context) {
 	if err := g.Bind(&request); err != nil {
 		lets.Response(g, response, err)
 		return
+	}
+
+	response = structs.DefaultHttpResponse{
+		Code:    http.StatusAccepted,
+		Status:  "success",
+		Message: "Processing transaction",
 	}
 
 	state, err := orchestrator.SagaTransfer(&request)
@@ -45,24 +49,43 @@ func HttpTransferSuccess(g *gin.Context) {
 	lets.Response(g, response, err)
 }
 
-// HTTP Handler for get account information
-func HttpTransferFailed(g *gin.Context) {
+// HTTP Handler for run http transfer in stateful mode
+func HttpTransferStatefull(g *gin.Context) {
 	var response interface{}
 	var err error
 
-	// Get id from uri
-	var request structs.HttpAccountRequestRegister
+	var request structs.HttpTransferRequest
 	if err := g.Bind(&request); err != nil {
 		lets.Response(g, response, err)
 		return
 	}
 
-	// Call account service
-	svcAccount := adapters.ApiAccount
-	response, err = svcAccount.Insert(g, &data.RequestAccountInsert{
-		Name:    request.Name,
-		Balance: float64(request.Balance),
-	})
+	response = structs.DefaultHttpResponse{
+		Code:    http.StatusAccepted,
+		Status:  "success",
+		Message: "Processing transaction",
+	}
 
+	// Response the request asap
 	lets.Response(g, response, err)
+
+	// Run as a go routines and manage from background
+	go func(request structs.HttpTransferRequest) {
+		state, err := orchestrator.SagaTransfer(&request)
+		if err != nil {
+			golog.Error(err.Error())
+			return
+		}
+
+		golog.Infof("State: %v", state)
+
+		if state == orchestrator.StateTransferCanceled {
+			response = structs.DefaultHttpResponse{
+				Code:    http.StatusNotAcceptable,
+				Status:  "failed",
+				Message: "Transfer was canceled",
+			}
+			return
+		}
+	}(request)
 }
