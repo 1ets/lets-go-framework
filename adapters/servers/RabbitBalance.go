@@ -11,16 +11,19 @@ import (
 
 func RabbitBalanceResult(r drivers.MessageContext) {
 	fmt.Println("RabbitBalanceResult(r drivers.MessageContext)")
-	var eventTransferResult data.EventTransferResult
+	var eventBalanceTransferResult data.EventBalanceTransferResult
 	var err error
 
-	err = json.Unmarshal(r.GetData(), &eventTransferResult)
+	err = json.Unmarshal(r.GetData(), &eventBalanceTransferResult)
 	if err != nil {
 		fmt.Println("ERR: ", err.Error())
 		return
 	}
 
-	controllers.RabbitBalanceResult(r.GetCorrelationId(), &structs.EventBalanceTransferResult{})
+	controllers.RabbitBalanceResult(r.GetCorrelationId(), &structs.EventBalanceTransferResult{
+		CrBalance: eventBalanceTransferResult.CrBalance,
+		DbBalance: eventBalanceTransferResult.DbBalance,
+	})
 
 	if err != nil {
 		fmt.Println("ERR: ", err.Error())
