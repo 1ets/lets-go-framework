@@ -35,18 +35,16 @@ func (r *rabbitBalance) BalanceTransfer(correlationId string, data *data.EventTr
 	return nil
 }
 
-func (r *rabbitBalance) BalanceRollback(correlationId string, data *data.EventTransfer) error {
+func (r *rabbitBalance) BalanceRollback(data *data.EventTransfer) error {
 	rabbit := r.Driver
 
 	event := drivers.Event{
 		Exchange:   rabbit.Consumer.GetExchange(),
 		RoutingKey: os.Getenv("RQ_ROUTING_KEY_TRANSFER"),
-		ReplyTo:    rabbit.Consumer.GenerateReplyTo(),
 		Body: drivers.MessageBody{
 			Event: "balance-transfer-rollback",
 			Data:  data,
 		},
-		CorrelationId: correlationId,
 	}
 
 	err := rabbit.Publish(event)
