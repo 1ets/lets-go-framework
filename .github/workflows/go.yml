@@ -22,7 +22,7 @@ jobs:
         go-version: 1.19
 
     - name: Build
-      run: go build -v ./lets.go
+      run: go build -v -o manager ./lets.go
 
     - name: Test
       run: go test -v ./lets.go
