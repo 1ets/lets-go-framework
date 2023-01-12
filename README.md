@@ -1,7 +1,7 @@
 <p align="center"><a href="https://lets.dev1.my.id/" target="_blank">Lets</a></p>
 
 <p align="center">
-<a href="https://github.com/1est/lets-go-framework/actions"><img src="https://github.com/1est/lets-go-framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://github.com/1est/lets-go-framework/actions"><img src="https://github.com/1ets/lets-go-framework/actions/workflows/go.yml/badge.svg" alt="Build Status"></a>
 
 ## About Lets
 Lets is a framework that combines packages and frameworks that improve the dynamics of the different work patterns of each golang programmer with structural elegance and syntax friendliness.
