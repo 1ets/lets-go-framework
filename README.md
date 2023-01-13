@@ -29,11 +29,11 @@ Lets has the most extensive and thorough documentation and video tutorial librar
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Lets documentation](https://lets.dev1.my.id/docs/contributions).
+Thank you for considering contributing to the Lets framework! The contribution guide can be found in the [Lets documentation](https://lets.dev1.my.id/docs/contributions).
 
 ## Code of Conduct
 
-In order to ensure that the LLets community is welcoming to all, please review and abide by the [Code of Conduct](https://lets.dev1.my.id/docs/contributions#code-of-conduct).
+In order to ensure that the Lets community is welcoming to all, please review and abide by the [Code of Conduct](https://lets.dev1.my.id/docs/contributions#code-of-conduct).
 
 ## Security Vulnerabilities
 
