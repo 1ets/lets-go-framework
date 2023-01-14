@@ -1,4 +1,4 @@
-package boot
+package framework
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"lets-go-framework/lets/drivers"
 )
 
-func LoadGrpcFramework() {
+func Grpc() {
 	fmt.Println("LoadGrpcFramework()")
 
 	grpcDriver := drivers.NewGrpc()

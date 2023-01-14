@@ -6,7 +6,7 @@ import (
 )
 
 // Hold the thread for exitting
-func runningForever() {
+func RunningForever() {
 	for {
 		time.Sleep(time.Duration(math.MaxInt64))
 	}

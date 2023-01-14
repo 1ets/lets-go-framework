@@ -1,10 +1,13 @@
-package lets
+package boot
 
 import (
 	"fmt"
+	"lets-go-framework/lets"
 	"reflect"
 	"runtime"
 )
+
+// Initialize all required vars, consts
 
 type Bootstrap struct {
 	OnInits []func()
@@ -22,9 +25,9 @@ func (b *Bootstrap) OnInit() {
 func (b *Bootstrap) OnMain() {
 	fmt.Println("Starting up")
 	for i, runner := range b.OnMains {
-		fmt.Printf("%v. Starting %s", i, runtime.FuncForPC(reflect.ValueOf(runner).Pointer()).Name())
+		fmt.Printf("%v. Starting %s\n", i, runtime.FuncForPC(reflect.ValueOf(runner).Pointer()).Name())
 		go runner()
 	}
 
-	runningForever()
+	lets.RunningForever()
 }

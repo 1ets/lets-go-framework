@@ -1,4 +1,4 @@
-package boot
+package framework
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 // Define rabbit service host and port
-func LoadRabbitFramework() {
+func RabbitMQ() {
 	fmt.Println("LoadRabbitFramework()")
 
 	rabbit := drivers.ServiceRabbit{
