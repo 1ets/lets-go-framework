@@ -1,4 +1,4 @@
-package boot
+package framework
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func (http *httpService) Serve() {
 }
 
 // Start http service
-func LoadHttpFramework() {
+func Http() {
 	fmt.Println("httpService.LoadHttpFramework()")
 
 	http := httpService{
