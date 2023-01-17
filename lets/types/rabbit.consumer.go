@@ -84,10 +84,10 @@ func (rtm *RabbitConsumer) GenerateReplyTo() string {
 	return string(_replyTo)
 }
 
-func NewRabbitConsumer(exchange, routingKey, queue string) IRabbitConsumer {
-	return &RabbitConsumer{
-		Exchange:   exchange,
-		RoutingKey: routingKey,
-		Queue:      queue,
-	}
-}
+// func NewRabbitConsumer(exchange, routingKey, queue string) IRabbitConsumer {
+// 	return &RabbitConsumer{
+// 		Exchange:   exchange,
+// 		RoutingKey: routingKey,
+// 		Queue:      queue,
+// 	}
+// }

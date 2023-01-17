@@ -2,43 +2,46 @@ package framework
 
 import (
 	"fmt"
-	"lets-go-framework/services"
-	"os"
+	"lets-go-framework/lets/types"
 
 	"github.com/gin-gonic/gin"
 )
 
+var HttpConfig types.IHttpServer
+
+// HTTP service struct
 type httpService struct {
-	Host   string
-	Port   string
-	Server *gin.Engine
+	Server     string
+	Engine     *gin.Engine
+	Middleware func(*gin.Engine)
+	Router     func(*gin.Engine)
 }
 
+// Initialize service
 func (http *httpService) Init() {
 	fmt.Println("httpService.Init()")
 
-	http.Server = gin.New()
+	http.Server = fmt.Sprintf(":%s", HttpConfig.GetPort())
+	http.Engine = gin.New()
+	http.Middleware = HttpConfig.GetMiddleware()
+	http.Router = HttpConfig.GetRouter()
 }
 
+// Run service
 func (http *httpService) Serve() {
 	fmt.Println("httpService.Serve()")
 
-	ServePort := fmt.Sprintf(":%s", http.Port)
-	http.Server.Run(ServePort)
+	http.Engine.Run(http.Server)
 }
 
 // Start http service
 func Http() {
 	fmt.Println("httpService.LoadHttpFramework()")
 
-	http := httpService{
-		Port: os.Getenv("SERVE_HTTP_PORT"),
-	}
+	var http httpService
 
 	http.Init()
-
-	services.MiddlewareHttpService(http.Server)
-	services.RouteHttpService(http.Server)
-
+	http.Middleware(http.Engine)
+	http.Router(http.Engine)
 	http.Serve()
 }
