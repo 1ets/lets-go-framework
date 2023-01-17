@@ -53,6 +53,7 @@ type grpcClient struct {
 
 func (rpc *grpcClient) Init() {
 	fmt.Println("grpcService.Init()")
+	var dsn string
 
 	for _, config := range GrpcClientConfig {
 		dsn = fmt.Sprintf("%s:%s", config.GetHost(), config.GetPort())
