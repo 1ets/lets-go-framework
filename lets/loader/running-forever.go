@@ -1,4 +1,4 @@
-package lets
+package loader
 
 import (
 	"math"

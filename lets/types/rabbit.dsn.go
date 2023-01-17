@@ -82,12 +82,12 @@ func (rtm *RabbitDsn) GetVirtualHost() string {
 	return rtm.VirtualHost
 }
 
-func NewRabbitDsn(host, port, username, password, virtualHost string) IRabbitDsn {
-	return &RabbitDsn{
-		Host:        host,
-		Port:        port,
-		Username:    username,
-		Password:    password,
-		VirtualHost: virtualHost,
-	}
-}
+// func NewRabbitDsn(host, port, username, password, virtualHost string) IRabbitDsn {
+// 	return &RabbitDsn{
+// 		Host:        host,
+// 		Port:        port,
+// 		Username:    username,
+// 		Password:    password,
+// 		VirtualHost: virtualHost,
+// 	}
+// }

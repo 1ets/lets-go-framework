@@ -1,4 +1,4 @@
-package boot
+package loader
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 )
 
 // Loading .env environment variable into memory.
-func LoadEnv() {
+func Environment() {
 	fmt.Println("Loading: .env ...")
 	err := godotenv.Load()
 

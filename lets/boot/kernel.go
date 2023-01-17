@@ -2,32 +2,36 @@ package boot
 
 import (
 	"fmt"
-	"lets-go-framework/lets"
+	"lets-go-framework/lets/framework"
+	"lets-go-framework/lets/loader"
 	"reflect"
 	"runtime"
 )
 
-// Initialize all required vars, consts
-
-type Bootstrap struct {
-	OnInits []func()
-	OnMains []func()
+var Initializer = []func(){
+	loader.Environment,
 }
 
-func (b *Bootstrap) OnInit() {
+var Servers = []func(){
+	framework.Http,
+	framework.Grpc,
+	framework.RabbitMQ,
+}
+
+func OnInit() {
 	fmt.Println("Initialization")
-	for i, initializer := range b.OnInits {
+	for i, initializer := range Initializer {
 		fmt.Printf("%v. Initializing %s\n", i, runtime.FuncForPC(reflect.ValueOf(initializer).Pointer()).Name())
 		initializer()
 	}
 }
 
-func (b *Bootstrap) OnMain() {
+func OnMain() {
 	fmt.Println("Starting up")
-	for i, runner := range b.OnMains {
+	for i, runner := range Servers {
 		fmt.Printf("%v. Starting %s\n", i, runtime.FuncForPC(reflect.ValueOf(runner).Pointer()).Name())
 		go runner()
 	}
 
-	lets.RunningForever()
+	loader.RunningForever()
 }

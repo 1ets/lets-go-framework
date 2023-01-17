@@ -53,10 +53,10 @@ func (rtm *RabbitPublisher) GetQueue() string {
 	return rtm.Queue
 }
 
-func NewRabbitPublisher(exchange, routingKey, queue string) IRabbitPublisher {
-	return &RabbitPublisher{
-		Exchange:   exchange,
-		RoutingKey: routingKey,
-		Queue:      queue,
-	}
-}
+// func NewRabbitPublisher(exchange, routingKey, queue string) IRabbitPublisher {
+// 	return &RabbitPublisher{
+// 		Exchange:   exchange,
+// 		RoutingKey: routingKey,
+// 		Queue:      queue,
+// 	}
+// }
