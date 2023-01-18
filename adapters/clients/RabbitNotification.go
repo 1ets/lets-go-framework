@@ -3,25 +3,27 @@ package clients
 import (
 	"fmt"
 	"lets-go-framework/adapters/data"
-	"lets-go-framework/lets/drivers"
+	"lets-go-framework/lets/rabbitmq"
 	"os"
 )
 
 var RabbitNotification = rabbitNotification{}
 
 type rabbitNotification struct {
-	Driver *drivers.ServiceRabbit
+	Driver rabbitmq.RabbitClient
 }
 
 func (r *rabbitNotification) Notify(data *data.EventNotification) error {
 	rabbit := r.Driver
 
-	event := drivers.Event{
-		Exchange:   os.Getenv("RQ_EXCHANGE_NOTIFICATION"),
-		RoutingKey: os.Getenv("RQ_ROUTING_KEY_NOTIFICATION"),
-		Body: drivers.MessageBody{
-			Event: "transfer",
-			Data:  data,
+	event := rabbitmq.Event{
+		Name:       "transfer",
+		Data:       data,
+		Exchange:   rabbit.GetDst().GetExchange(),
+		RoutingKey: os.Getenv("RQ_ROUTING_KEY_TRANSFER"),
+		ReplyTo: rabbitmq.ReplyTo{
+			Exchange:   os.Getenv("RQ_EXCHANGE_TRANSFER"),
+			RoutingKey: os.Getenv("RQ_ROUTING_KEY_TRANSFER"),
 		},
 	}
 

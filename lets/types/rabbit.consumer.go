@@ -15,27 +15,26 @@ const (
 )
 
 // Interface for dsn accessable method
-type IRabbitConsumer interface {
+type IRabbitMQConsumer interface {
 	GetName() string
 	GetExchange() string
 	GetExchangeType() string
 	GetRoutingKey() string
 	GetQueue() string
-	GenerateReplyTo() string
 }
 
 // Target host information.
-type RabbitConsumer struct {
+type RabbitMQConsumer struct {
 	Name, Exchange, ExchangeType, RoutingKey, Queue string
 }
 
 // Get ExchangeName.
-func (rtm *RabbitConsumer) GetName() string {
+func (rtm *RabbitMQConsumer) GetName() string {
 	return rtm.Name
 }
 
 // Get ExchangeName.
-func (rtm *RabbitConsumer) GetExchange() string {
+func (rtm *RabbitMQConsumer) GetExchange() string {
 	if rtm.Exchange == "" {
 		golog.Warn("Configs RabbitMQ: RQ_CONSUMER_EXCHANGE is not set in .env file, using default configuration.")
 
@@ -46,12 +45,12 @@ func (rtm *RabbitConsumer) GetExchange() string {
 }
 
 // Get ExchangeName.
-func (rtm *RabbitConsumer) GetExchangeType() string {
+func (rtm *RabbitMQConsumer) GetExchangeType() string {
 	return rtm.ExchangeType
 }
 
 // Get QueueName.
-func (rtm *RabbitConsumer) GetRoutingKey() string {
+func (rtm *RabbitMQConsumer) GetRoutingKey() string {
 	if rtm.RoutingKey == "" {
 		golog.Warn("Configs RabbitMQ: RQ_CONSUMER_ROUTING_KEY is not set in .env file, using default configuration.")
 
@@ -61,7 +60,7 @@ func (rtm *RabbitConsumer) GetRoutingKey() string {
 	return rtm.RoutingKey
 }
 
-func (rtm *RabbitConsumer) GetQueue() string {
+func (rtm *RabbitMQConsumer) GetQueue() string {
 	if rtm.Queue == "" {
 		golog.Warn("Configs RabbitMQ: RQ_CONSUMER_QUEUE is not set in .env file, using default configuration.")
 
@@ -70,7 +69,8 @@ func (rtm *RabbitConsumer) GetQueue() string {
 
 	return rtm.Queue
 }
-func (rtm *RabbitConsumer) GenerateReplyTo() string {
+
+func (rtm *RabbitMQConsumer) GenerateReplyTo() string {
 	replyTo := map[string]string{
 		"exchange":    rtm.GetExchange(),
 		"routing_key": rtm.GetRoutingKey(),
@@ -83,11 +83,3 @@ func (rtm *RabbitConsumer) GenerateReplyTo() string {
 
 	return string(_replyTo)
 }
-
-// func NewRabbitConsumer(exchange, routingKey, queue string) IRabbitConsumer {
-// 	return &RabbitConsumer{
-// 		Exchange:   exchange,
-// 		RoutingKey: routingKey,
-// 		Queue:      queue,
-// 	}
-// }

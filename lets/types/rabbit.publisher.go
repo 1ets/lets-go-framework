@@ -1,24 +1,44 @@
 package types
 
-import "github.com/kataras/golog"
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/kataras/golog"
+)
 
 // Default configuration
 const (
+	RQ_PUBLISHER_NAME        = "default-name"
 	RQ_PUBLISHER_EXCHANGE    = "default-exchange"
 	RQ_PUBLISHER_ROUTING_KEY = "default-routing-key"
 	RQ_PUBLISHER_QUEUE       = "default-queue"
 )
 
 // Interface for dsn accessable method
-type IRabbitPublisher interface {
+type IRabbitMQPublisher interface {
+	GetName() string
 	GetExchange() string
 	GetRoutingKey() string
 	GetQueue() string
+	GetReplyTo() ReplyTo
 }
 
 // Target host information.
 type RabbitPublisher struct {
-	Exchange, RoutingKey, Queue string
+	Name, Exchange, RoutingKey, Queue string
+	ReplyTo                           ReplyTo
+}
+
+// Get ExchangeName.
+func (rtm *RabbitPublisher) GetName() string {
+	if rtm.Name == "" {
+		golog.Warn("Configs RabbitMQ: RQ_PUBLISHER_NAME is not set in .env file, using default configuration.")
+
+		return RQ_PUBLISHER_NAME
+	}
+
+	return rtm.Name
 }
 
 // Get ExchangeName.
@@ -53,10 +73,16 @@ func (rtm *RabbitPublisher) GetQueue() string {
 	return rtm.Queue
 }
 
-// func NewRabbitPublisher(exchange, routingKey, queue string) IRabbitPublisher {
-// 	return &RabbitPublisher{
-// 		Exchange:   exchange,
-// 		RoutingKey: routingKey,
-// 		Queue:      queue,
-// 	}
-// }
+func (rtm *RabbitPublisher) GenerateReplyTo() string {
+	replyTo := map[string]string{
+		"exchange":    rtm.GetExchange(),
+		"routing_key": rtm.GetRoutingKey(),
+	}
+
+	_replyTo, err := json.Marshal(replyTo)
+	if err != nil {
+		fmt.Println("cant marshal replyTos")
+	}
+
+	return string(_replyTo)
+}

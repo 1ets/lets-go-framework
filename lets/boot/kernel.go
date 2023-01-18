@@ -2,7 +2,7 @@ package boot
 
 import (
 	"fmt"
-	"lets-go-framework/lets/framework"
+	"lets-go-framework/lets/frameworks"
 	"lets-go-framework/lets/loader"
 	"reflect"
 	"runtime"
@@ -13,9 +13,9 @@ var Initializer = []func(){
 }
 
 var Servers = []func(){
-	framework.Http,
-	framework.Grpc,
-	framework.RabbitMQ,
+	frameworks.Http,
+	frameworks.Grpc,
+	frameworks.RabbitMQ,
 }
 
 func OnInit() {
