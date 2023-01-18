@@ -14,7 +14,7 @@ const (
 )
 
 // Interface for dsn accessable method
-type IRabbitDsn interface {
+type IRabbitMQDsn interface {
 	GetHost() string
 	GetPort() string
 	GetUsername() string
@@ -23,12 +23,12 @@ type IRabbitDsn interface {
 }
 
 // Target host information.
-type RabbitDsn struct {
+type RabbitMQDsn struct {
 	Host, Port, Username, Password, VirtualHost string
 }
 
 // Get Host.
-func (rtm *RabbitDsn) GetHost() string {
+func (rtm *RabbitMQDsn) GetHost() string {
 	if rtm.Host == "" {
 		golog.Warn("Configs RabbitMQ: RQ_HOST is not set in .env file, using default configuration.")
 
@@ -39,7 +39,7 @@ func (rtm *RabbitDsn) GetHost() string {
 }
 
 // Get Port.
-func (rtm *RabbitDsn) GetPort() string {
+func (rtm *RabbitMQDsn) GetPort() string {
 	if rtm.Port == "" {
 		golog.Warn("Configs RabbitMQ: RQ_PORT is not set in .env file, using default configuration.")
 
@@ -50,7 +50,7 @@ func (rtm *RabbitDsn) GetPort() string {
 }
 
 // Get Username.
-func (rtm *RabbitDsn) GetUsername() string {
+func (rtm *RabbitMQDsn) GetUsername() string {
 	if rtm.Username == "" {
 		golog.Warn("Configs RabbitMQ: RQ_USERNAME is not set in .env file, using default configuration.")
 
@@ -61,7 +61,7 @@ func (rtm *RabbitDsn) GetUsername() string {
 }
 
 // Get Password.
-func (rtm *RabbitDsn) GetPassword() string {
+func (rtm *RabbitMQDsn) GetPassword() string {
 	if rtm.Password == "" {
 		golog.Warn("Configs RabbitMQ: RQ_PASSWORD is not set in .env file, using default configuration.")
 
@@ -72,7 +72,7 @@ func (rtm *RabbitDsn) GetPassword() string {
 }
 
 // Get VirtualHost.
-func (rtm *RabbitDsn) GetVirtualHost() string {
+func (rtm *RabbitMQDsn) GetVirtualHost() string {
 	if rtm.VirtualHost == "" {
 		golog.Warn("Configs RabbitMQ: RQ_VHOST is not set in .env file, using default configuration.")
 
@@ -81,13 +81,3 @@ func (rtm *RabbitDsn) GetVirtualHost() string {
 
 	return rtm.VirtualHost
 }
-
-// func NewRabbitDsn(host, port, username, password, virtualHost string) IRabbitDsn {
-// 	return &RabbitDsn{
-// 		Host:        host,
-// 		Port:        port,
-// 		Username:    username,
-// 		Password:    password,
-// 		VirtualHost: virtualHost,
-// 	}
-// }

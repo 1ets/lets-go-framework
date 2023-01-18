@@ -1,4 +1,4 @@
-package framework
+package frameworks
 
 import (
 	"fmt"
@@ -53,13 +53,10 @@ type grpcClient struct {
 
 func (rpc *grpcClient) Init() {
 	fmt.Println("grpcService.Init()")
-	var dsn string
 
 	for _, config := range GrpcClientConfig {
-		dsn = fmt.Sprintf("%s:%s", config.GetHost(), config.GetPort())
-		var err error
-
-		conn, err = grpc.Dial(dsn, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		dsn := fmt.Sprintf("%s:%s", config.GetHost(), config.GetPort())
+		conn, err := grpc.Dial(dsn, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		fmt.Println("Connect to ", dsn)
 		if err != nil {
 			fmt.Println("Error ", err.Error())
@@ -72,7 +69,6 @@ func (rpc *grpcClient) Init() {
 
 func (rpc *grpcClient) Connect() {
 	fmt.Println("grpcService.Serve()")
-
 }
 
 // Define rpcservice host and port

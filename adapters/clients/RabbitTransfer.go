@@ -3,28 +3,30 @@ package clients
 import (
 	"fmt"
 	"lets-go-framework/adapters/data"
-	"lets-go-framework/lets/drivers"
+	"lets-go-framework/lets/rabbitmq"
 	"os"
 )
 
 var RabbitTransfer = rabbitTransfer{}
 
 type rabbitTransfer struct {
-	Driver *drivers.ServiceRabbit
+	Driver rabbitmq.RabbitClient
 }
 
 func (r *rabbitTransfer) Transfer(correlationId string, data *data.EventTransfer) error {
 	rabbit := r.Driver
 
-	event := drivers.Event{
-		Exchange:   rabbit.Consumer.GetExchange(),
-		RoutingKey: os.Getenv("RQ_ROUTING_KEY_TRANSFER"),
-		ReplyTo:    rabbit.Consumer.GenerateReplyTo(),
-		Body: drivers.MessageBody{
-			Event: "transfer",
-			Data:  data,
-		},
+	event := rabbitmq.Event{
+		Name:          "transfer",
+		Data:          data,
 		CorrelationId: correlationId,
+		Exchange:      rabbit.GetDst().GetExchange(),
+		RoutingKey:    os.Getenv("RQ_ROUTING_KEY_TRANSFER"),
+		ReplyTo: rabbitmq.ReplyTo{
+			Exchange:      os.Getenv("RQ_ROUTING_KEY_TRANSFER"),
+			RoutingKey:    os.Getenv("RQ_ROUTING_KEY_TRANSFER"),
+			CorrelationId: correlationId,
+		},
 	}
 
 	err := rabbit.Publish(event)
@@ -38,13 +40,11 @@ func (r *rabbitTransfer) Transfer(correlationId string, data *data.EventTransfer
 func (r *rabbitTransfer) TransferRollback(data *data.EventTransferRollback) error {
 	rabbit := r.Driver
 
-	event := drivers.Event{
-		Exchange:   rabbit.Consumer.GetExchange(),
+	event := rabbitmq.Event{
+		Name:       "transfer-rollback",
+		Data:       data,
+		Exchange:   rabbit.GetDst().GetExchange(),
 		RoutingKey: os.Getenv("RQ_ROUTING_KEY_TRANSFER"),
-		Body: drivers.MessageBody{
-			Event: "transfer-rollback",
-			Data:  data,
-		},
 	}
 
 	err := rabbit.Publish(event)
