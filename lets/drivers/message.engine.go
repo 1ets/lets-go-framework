@@ -14,7 +14,7 @@ type MessageEngine struct {
 }
 
 func (me *MessageEngine) Event(name string, handler MessageHandler) {
-	fmt.Printf("[RabbitMQ] Event %s --> %v", name, runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name())
+	fmt.Printf("[RabbitMQ] Event %s --> %v\n", name, runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name())
 
 	me.events = append(me.events, MessageEvent{
 		Name:    name,
