@@ -2,7 +2,7 @@ package clients
 
 import (
 	"fmt"
-	"lets-go-framework/adapters/data"
+	"lets-go-framework/app/adapters/data"
 	"lets-go-framework/lets/rabbitmq"
 	"os"
 )

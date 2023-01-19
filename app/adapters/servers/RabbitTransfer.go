@@ -2,7 +2,7 @@ package servers
 
 import (
 	"fmt"
-	"lets-go-framework/adapters/data"
+	"lets-go-framework/app/adapters/data"
 	"lets-go-framework/app/controllers"
 	"lets-go-framework/app/structs"
 	"lets-go-framework/lets/rabbitmq"

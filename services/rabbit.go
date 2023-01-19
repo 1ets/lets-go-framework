@@ -1,7 +1,7 @@
 package services
 
 import (
-	"lets-go-framework/adapters/servers"
+	"lets-go-framework/app/adapters/servers"
 	"lets-go-framework/lets/rabbitmq"
 )
 

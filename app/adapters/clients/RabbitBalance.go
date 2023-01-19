@@ -2,22 +2,22 @@ package clients
 
 import (
 	"fmt"
-	"lets-go-framework/adapters/data"
+	"lets-go-framework/app/adapters/data"
 	"lets-go-framework/lets/rabbitmq"
 	"os"
 )
 
-var RabbitTransfer = rabbitTransfer{}
+var RabbitBalance rabbitBalance
 
-type rabbitTransfer struct {
+type rabbitBalance struct {
 	Driver rabbitmq.RabbitClient
 }
 
-func (r *rabbitTransfer) Transfer(correlationId string, data *data.EventTransfer) error {
+func (r *rabbitBalance) BalanceTransfer(correlationId string, data *data.EventTransfer) error {
 	rabbit := r.Driver
 
 	event := rabbitmq.Event{
-		Name:          "transfer",
+		Name:          "balance-transfer",
 		Data:          data,
 		CorrelationId: correlationId,
 		Exchange:      rabbit.GetDst().GetExchange(),
@@ -37,11 +37,11 @@ func (r *rabbitTransfer) Transfer(correlationId string, data *data.EventTransfer
 	return nil
 }
 
-func (r *rabbitTransfer) TransferRollback(data *data.EventTransferRollback) error {
+func (r *rabbitBalance) BalanceRollback(data *data.EventTransfer) error {
 	rabbit := r.Driver
 
 	event := rabbitmq.Event{
-		Name:       "transfer-rollback",
+		Name:       "balance-transfer-rollback",
 		Data:       data,
 		Exchange:   rabbit.GetDst().GetExchange(),
 		RoutingKey: os.Getenv("RQ_ROUTING_KEY_TRANSFER"),

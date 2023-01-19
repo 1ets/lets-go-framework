@@ -1,7 +1,7 @@
 package configs
 
 import (
-	"lets-go-framework/adapters/clients"
+	"lets-go-framework/app/adapters/clients"
 	"lets-go-framework/lets/frameworks"
 	"lets-go-framework/lets/types"
 	"lets-go-framework/services"

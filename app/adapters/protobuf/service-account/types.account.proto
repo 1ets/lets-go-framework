@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package service_account;
-option go_package="adapters/protobuf";
+option go_package="app/adapters/protobuf";
 
 message Account {
  uint64 id = 1;

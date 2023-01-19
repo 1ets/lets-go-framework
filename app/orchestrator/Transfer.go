@@ -3,8 +3,8 @@ package orchestrator
 import (
 	"context"
 	"fmt"
-	"lets-go-framework/adapters/clients"
-	"lets-go-framework/adapters/data"
+	"lets-go-framework/app/adapters/clients"
+	"lets-go-framework/app/adapters/data"
 	"lets-go-framework/app/structs"
 	"time"
 
