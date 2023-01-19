@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"lets-go-framework/adapters/data"
-	"lets-go-framework/adapters/protobuf"
+	"lets-go-framework/app/adapters/data"
+	"lets-go-framework/app/adapters/protobuf"
 )
 
 // GRPC API collections for Account Service

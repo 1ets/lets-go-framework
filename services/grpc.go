@@ -1,8 +1,8 @@
 package services
 
 import (
-	"lets-go-framework/adapters/protobuf"
-	"lets-go-framework/adapters/servers"
+	"lets-go-framework/app/adapters/protobuf"
+	"lets-go-framework/app/adapters/servers"
 
 	"google.golang.org/grpc"
 )

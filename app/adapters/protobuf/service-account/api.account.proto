@@ -3,7 +3,7 @@ syntax = "proto3";
 import "types.account.proto";
 
 package service_account;
-option go_package="adapters/protobuf";
+option go_package="app/adapters/protobuf";
 
 message RequestAccountInsert {
  uint64 id = 1;

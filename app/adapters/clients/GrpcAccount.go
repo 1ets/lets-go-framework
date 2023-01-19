@@ -1,7 +1,7 @@
 package clients
 
 import (
-	"lets-go-framework/adapters/protobuf"
+	"lets-go-framework/app/adapters/protobuf"
 
 	"google.golang.org/grpc"
 )

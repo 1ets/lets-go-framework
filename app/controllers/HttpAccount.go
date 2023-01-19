@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"lets-go-framework/adapters"
-	"lets-go-framework/adapters/data"
+	"lets-go-framework/app/adapters"
+	"lets-go-framework/app/adapters/data"
 	"lets-go-framework/app/structs"
 	"lets-go-framework/lets"
 	"net/http"
