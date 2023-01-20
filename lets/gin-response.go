@@ -8,15 +8,15 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type HttpResponse struct {
+type httpResponse struct {
 	Status  string      `json:"status"`
 	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
-func Response(g *gin.Context, i interface{}, err error) {
+func HttpResponse(g *gin.Context, i interface{}, err error) {
 	if err != nil {
-		g.JSON(500, HttpResponse{
+		g.JSON(500, httpResponse{
 			Status:  "error",
 			Message: status.Convert(err).Message(),
 		})
@@ -41,7 +41,7 @@ func Response(g *gin.Context, i interface{}, err error) {
 		}
 	}
 
-	g.JSON(statusCode, HttpResponse{
+	g.JSON(statusCode, httpResponse{
 		Status: status,
 		Data:   i,
 	})
