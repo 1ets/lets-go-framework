@@ -8,12 +8,12 @@ import (
 )
 
 // Global Middleware setup
-func MiddlewareHttpService(middleware *gin.Engine) {
+func HttpMiddleware(middleware *gin.Engine) {
 	fmt.Println("MiddlewareHttpService()")
 	middleware.Use(gin.Logger(), gin.Recovery())
 }
 
-func RouteHttpService(route *gin.Engine) {
+func HttpRouter(route *gin.Engine) {
 	fmt.Println("RouteHttpService()")
 
 	example := route.Group("example")
