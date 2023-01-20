@@ -18,7 +18,7 @@ func HttpTransferStateless(g *gin.Context) {
 	// Get id from uri
 	var request structs.HttpTransferRequest
 	if err := g.Bind(&request); err != nil {
-		lets.Response(g, response, err)
+		lets.HttpResponse(g, response, err)
 		return
 	}
 
@@ -42,11 +42,11 @@ func HttpTransferStateless(g *gin.Context) {
 			Status:  "failed",
 			Message: "Transfer was canceled",
 		}
-		lets.Response(g, response, err)
+		lets.HttpResponse(g, response, err)
 		return
 	}
 
-	lets.Response(g, response, err)
+	lets.HttpResponse(g, response, err)
 }
 
 // HTTP Handler for run http transfer in stateful mode
@@ -56,7 +56,7 @@ func HttpTransferStatefull(g *gin.Context) {
 
 	var request structs.HttpTransferRequest
 	if err := g.Bind(&request); err != nil {
-		lets.Response(g, response, err)
+		lets.HttpResponse(g, response, err)
 		return
 	}
 
@@ -67,7 +67,7 @@ func HttpTransferStatefull(g *gin.Context) {
 	}
 
 	// Response the request asap
-	lets.Response(g, response, err)
+	lets.HttpResponse(g, response, err)
 
 	// Run as a go routines and manage from background
 	go func(request structs.HttpTransferRequest) {
