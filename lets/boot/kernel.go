@@ -8,14 +8,21 @@ import (
 	"runtime"
 )
 
+// List of initializer
 var Initializer = []func(){
 	loader.Environment,
 }
 
+// List of framework that start on lets
 var Servers = []func(){
 	frameworks.Http,
-	frameworks.Grpc,
-	frameworks.RabbitMQ,
+	// frameworks.Grpc,
+	// frameworks.RabbitMQ,
+}
+
+// Add initialization function and run before application starting
+func AddInitializer(init func()) {
+	Initializer = append(Initializer, init)
 }
 
 func OnInit() {
