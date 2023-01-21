@@ -2,6 +2,7 @@ package boot
 
 import (
 	"fmt"
+	"lets-go-framework/lets"
 	"lets-go-framework/lets/frameworks"
 	"lets-go-framework/lets/loader"
 	"reflect"
@@ -11,6 +12,8 @@ import (
 // List of initializer
 var Initializer = []func(){
 	loader.Environment,
+	loader.Logger,
+	loader.Launching,
 }
 
 // List of framework that start on lets
@@ -26,15 +29,15 @@ func AddInitializer(init func()) {
 }
 
 func OnInit() {
-	fmt.Println("Initialization")
-	for i, initializer := range Initializer {
-		fmt.Printf("%v. Initializing %s\n", i, runtime.FuncForPC(reflect.ValueOf(initializer).Pointer()).Name())
+	// fmt.Println("Initialization")
+	for _, initializer := range Initializer {
+		// fmt.Printf("%v. Initializing %s\n", i, runtime.FuncForPC(reflect.ValueOf(initializer).Pointer()).Name())
 		initializer()
 	}
 }
 
 func OnMain() {
-	fmt.Println("Starting up")
+	lets.LogI("Starting up")
 	for i, runner := range Servers {
 		fmt.Printf("%v. Starting %s\n", i, runtime.FuncForPC(reflect.ValueOf(runner).Pointer()).Name())
 		go runner()
