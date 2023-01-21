@@ -5,5 +5,7 @@ type RequestExample struct {
 }
 
 type ResponseExample struct {
+	Code    int    `json:"code"`
+	Status  string `json:"status"`
 	Message string `json:"message"`
 }
