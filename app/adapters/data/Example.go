@@ -1,11 +1,13 @@
 package data
 
+import "lets-go-framework/lets/types"
+
 type RequestExample struct {
 	Name string `json:"name"`
 }
 
 type ResponseExample struct {
-	Code    int    `json:"code"`
-	Status  string `json:"status"`
-	Message string `json:"message"`
+	types.Response
+
+	Greeting string `json:"greeting"`
 }

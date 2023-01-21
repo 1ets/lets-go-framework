@@ -17,7 +17,7 @@ func HttpTransactionGet(g *gin.Context) {
 	// Get id from uri
 	var request structs.HttpAccountRequestRegister
 	if err := g.Bind(&request); err != nil {
-		lets.HttpResponse(g, response, err)
+		lets.HttpResponseJson(g, response, err)
 		return
 	}
 
@@ -28,5 +28,5 @@ func HttpTransactionGet(g *gin.Context) {
 		Balance: float64(request.Balance),
 	})
 
-	lets.HttpResponse(g, response, err)
+	lets.HttpResponseJson(g, response, err)
 }

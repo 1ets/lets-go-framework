@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/joho/godotenv v1.4.0
 	github.com/kataras/golog v0.1.8
+	github.com/kataras/pio v0.0.11
 	github.com/rabbitmq/amqp091-go v1.5.0
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1
@@ -24,7 +25,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kataras/pio v0.0.11 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect

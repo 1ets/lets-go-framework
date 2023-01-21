@@ -11,4 +11,5 @@ var (
 	LogW = Log.Warnf
 	LogE = Log.Errorf
 	LogF = Log.Fatalf
+	Logf = Log.Logf
 )
