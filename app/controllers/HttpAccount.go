@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"lets-go-framework/app/adapters"
+	"lets-go-framework/app/adapters/clients"
 	"lets-go-framework/app/adapters/data"
 	"lets-go-framework/app/structs"
 	"lets-go-framework/lets"
@@ -16,7 +16,7 @@ func HttpAccountGet(g *gin.Context) {
 	var err error
 
 	// Call account service
-	svcAccount := adapters.ApiAccount
+	svcAccount := clients.ApiAccount
 	response, err = svcAccount.Get(g, &data.RequestAccountGet{})
 
 	lets.HttpResponseJson(g, response, err)
@@ -35,7 +35,7 @@ func HttpAccountFind(g *gin.Context) {
 	}
 
 	// Call account service
-	svcAccount := adapters.ApiAccount
+	svcAccount := clients.ApiAccount
 	dataResponse, err := svcAccount.Find(g, &data.RequestAccountFind{
 		Id: uint(request.Id),
 	})
@@ -68,7 +68,7 @@ func HttpAccountRegister(g *gin.Context) {
 	}
 
 	// Call account service
-	svcAccount := adapters.ApiAccount
+	svcAccount := clients.ApiAccount
 	response, err = svcAccount.Insert(g, &data.RequestAccountInsert{
 		Name:    request.Name,
 		Balance: float64(request.Balance),
@@ -97,7 +97,7 @@ func HttpAccountUpdate(g *gin.Context) {
 	}
 
 	// Call account service
-	svcAccount := adapters.ApiAccount
+	svcAccount := clients.ApiAccount
 	response, err = svcAccount.Update(g, &data.RequestAccountUpdate{
 		Where: data.AccountUpdateWhere{
 			Id: uint(find.Id),
@@ -123,7 +123,7 @@ func HttpAccountRemove(g *gin.Context) {
 	}
 
 	// Call account service
-	svcAccount := adapters.ApiAccount
+	svcAccount := clients.ApiAccount
 	response, err = svcAccount.Delete(g, &data.RequestAccountDelete{
 		Id: uint(find.Id),
 	})

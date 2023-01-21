@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"lets-go-framework/app/adapters"
+	"lets-go-framework/app/adapters/clients"
 	"lets-go-framework/app/adapters/data"
 	"lets-go-framework/app/structs"
 	"lets-go-framework/lets"
@@ -22,7 +22,7 @@ func HttpTransactionGet(g *gin.Context) {
 	}
 
 	// Call account service
-	svcAccount := adapters.ApiAccount
+	svcAccount := clients.ApiAccount
 	response, err = svcAccount.Insert(g, &data.RequestAccountInsert{
 		Name:    request.Name,
 		Balance: float64(request.Balance),
