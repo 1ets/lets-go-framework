@@ -63,6 +63,10 @@ func (http *httpService) Serve() {
 
 // Start http service
 func Http() {
+	if HttpConfig == nil {
+		return
+	}
+
 	fmt.Println("httpService.LoadHttpFramework()")
 
 	var http httpService
