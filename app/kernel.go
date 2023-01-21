@@ -10,6 +10,7 @@ import (
 // Intercept lets initialization
 func OnInit() {
 	boot.AddInitializer(config.App)
+	boot.AddInitializer(config.Database)
 
 	// Set Gin
 	gin.SetMode(gin.ReleaseMode)

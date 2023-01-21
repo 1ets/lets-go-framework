@@ -2,6 +2,7 @@ package boot
 
 import (
 	"lets-go-framework/lets"
+	"lets-go-framework/lets/drivers"
 	"lets-go-framework/lets/frameworks"
 	"lets-go-framework/lets/loader"
 )
@@ -18,6 +19,7 @@ var Servers = []func(){
 	frameworks.Http,
 	// frameworks.Grpc,
 	// frameworks.RabbitMQ,
+ drivers.MySQL,
 }
 
 // Add initialization function and run before application starting
