@@ -1,12 +1,9 @@
 package boot
 
 import (
-	"fmt"
 	"lets-go-framework/lets"
 	"lets-go-framework/lets/frameworks"
 	"lets-go-framework/lets/loader"
-	"reflect"
-	"runtime"
 )
 
 // List of initializer
@@ -28,18 +25,18 @@ func AddInitializer(init func()) {
 	Initializer = append(Initializer, init)
 }
 
+// Bootstrap vars and configuration
 func OnInit() {
-	// fmt.Println("Initialization")
 	for _, initializer := range Initializer {
 		// fmt.Printf("%v. Initializing %s\n", i, runtime.FuncForPC(reflect.ValueOf(initializer).Pointer()).Name())
 		initializer()
 	}
 }
 
+// Bootstrap frameworks
 func OnMain() {
 	lets.LogI("Starting up")
-	for i, runner := range Servers {
-		fmt.Printf("%v. Starting %s\n", i, runtime.FuncForPC(reflect.ValueOf(runner).Pointer()).Name())
+	for _, runner := range Servers {
 		go runner()
 	}
 
