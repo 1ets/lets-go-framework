@@ -11,15 +11,18 @@ import (
 func DatabaseExample() (response data.ResponseExample, err error) {
 	users := repository.User
 
+	// Repository call
 	data, err := users.Get()
 	if err != nil {
 		return
 	}
 
+	// Create output to terminal
 	for _, u := range data {
 		lets.LogI(u.Name)
 	}
 
+	// Send back response to adapter
 	response.Greeting = fmt.Sprintf("We have %v users!", len(data))
 
 	return
