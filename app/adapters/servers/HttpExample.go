@@ -26,3 +26,16 @@ func HttpPostExample(g *gin.Context) {
 	// Write json response
 	lets.HttpResponseJson(g, response, err)
 }
+
+// HTTP Handler for get list of users
+func HttpGetDatabaseExample(g *gin.Context) {
+	// var request data.RequestExample
+	var response data.ResponseExample
+	var err error
+
+	// Call example controller
+	response, err = controllers.DatabaseExample()
+
+	// Write json response
+	lets.HttpResponseJson(g, response, err)
+}
