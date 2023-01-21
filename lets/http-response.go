@@ -14,7 +14,7 @@ type httpResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-func HttpResponse(g *gin.Context, i interface{}, err error) {
+func HttpResponseJson(g *gin.Context, i interface{}, err error) {
 	if err != nil {
 		g.JSON(500, httpResponse{
 			Status:  "error",

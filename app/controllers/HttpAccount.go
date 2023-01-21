@@ -19,7 +19,7 @@ func HttpAccountGet(g *gin.Context) {
 	svcAccount := adapters.ApiAccount
 	response, err = svcAccount.Get(g, &data.RequestAccountGet{})
 
-	lets.HttpResponse(g, response, err)
+	lets.HttpResponseJson(g, response, err)
 }
 
 // HTTP Handler for get account information
@@ -30,7 +30,7 @@ func HttpAccountFind(g *gin.Context) {
 	// Get id from uri
 	var request structs.HttpAccountRequestFind
 	if err := g.BindUri(&request); err != nil {
-		lets.HttpResponse(g, response, err)
+		lets.HttpResponseJson(g, response, err)
 		return
 	}
 
@@ -52,7 +52,7 @@ func HttpAccountFind(g *gin.Context) {
 		}
 	}
 
-	lets.HttpResponse(g, response, err)
+	lets.HttpResponseJson(g, response, err)
 }
 
 // HTTP Handler for get account information
@@ -63,7 +63,7 @@ func HttpAccountRegister(g *gin.Context) {
 	// Get id from uri
 	var request structs.HttpAccountRequestRegister
 	if err := g.Bind(&request); err != nil {
-		lets.HttpResponse(g, response, err)
+		lets.HttpResponseJson(g, response, err)
 		return
 	}
 
@@ -74,7 +74,7 @@ func HttpAccountRegister(g *gin.Context) {
 		Balance: float64(request.Balance),
 	})
 
-	lets.HttpResponse(g, response, err)
+	lets.HttpResponseJson(g, response, err)
 }
 
 // HTTP Handler for get account information
@@ -85,14 +85,14 @@ func HttpAccountUpdate(g *gin.Context) {
 	// Get id from uri
 	var find structs.HttpAccountRequestFind
 	if err := g.BindUri(&find); err != nil {
-		lets.HttpResponse(g, response, err)
+		lets.HttpResponseJson(g, response, err)
 		return
 	}
 
 	// Get id from body
 	var update structs.HttpAccountRequestUpdate
 	if err := g.Bind(&update); err != nil {
-		lets.HttpResponse(g, response, err)
+		lets.HttpResponseJson(g, response, err)
 		return
 	}
 
@@ -107,7 +107,7 @@ func HttpAccountUpdate(g *gin.Context) {
 		},
 	})
 
-	lets.HttpResponse(g, response, err)
+	lets.HttpResponseJson(g, response, err)
 }
 
 // HTTP Handler for get account information
@@ -118,7 +118,7 @@ func HttpAccountRemove(g *gin.Context) {
 	// Get id from uri
 	var find structs.HttpAccountRequestFind
 	if err := g.Bind(&find); err != nil {
-		lets.HttpResponse(g, response, err)
+		lets.HttpResponseJson(g, response, err)
 		return
 	}
 
@@ -128,5 +128,5 @@ func HttpAccountRemove(g *gin.Context) {
 		Id: uint(find.Id),
 	})
 
-	lets.HttpResponse(g, response, err)
+	lets.HttpResponseJson(g, response, err)
 }

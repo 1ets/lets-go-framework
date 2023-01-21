@@ -7,13 +7,23 @@ import (
 	"sync"
 
 	"github.com/kataras/golog"
+	"github.com/kataras/pio"
 )
+
+var GinLevel golog.Level = 6
 
 func Logger() {
 	lets.Log.SetTimeFormat("2006-01-02 15:04:05")
 	lets.Log.SetLevel("debug")
 	// lets.Log.RegisterFormatter(&LetsFormatter{})
 	// lets.Log.SetFormat("lets")
+
+	golog.Levels[GinLevel] = &golog.LevelMetadata{
+		Name:             "gin",
+		AlternativeNames: []string{"http-server"},
+		Title:            "[GIN]",
+		ColorCode:        pio.Green,
+	}
 }
 
 // LetsFormatter is a Formatter type for JSON logs.
