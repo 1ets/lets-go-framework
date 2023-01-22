@@ -1,6 +1,7 @@
 package config
 
 import (
+	"lets-go-framework/app/adapters/clients"
 	"lets-go-framework/lets/frameworks"
 	"lets-go-framework/lets/types"
 	"lets-go-framework/services"
@@ -15,20 +16,27 @@ func App() {
 		Router:     services.HttpRouter,
 	}
 
-	// frameworks.GrpcServerConfig = &types.GrpcServer{
-	// 	Host:   os.Getenv("SERVE_GRPC_PORT"),
-	// 	Port:   os.Getenv("SERVE_GRPC_PORT"),
-	// 	Router: services.RouteGrpcService,
-	// }
+	// Setup gRPC
+	frameworks.GrpcConfig = &types.GrpcConfig{
+		// Setup server
+		Server: &types.GrpcServer{
+			Port:   os.Getenv("SERVER_GRPC_PORT"),
+			Router: services.GrpcRouter,
+		},
 
-	// frameworks.GrpcClientConfig = []types.GrpcClient{
-	// 	{
-	// 		Name:   "account",
-	// 		Host:   "127.0.0.1",
-	// 		Port:   "5100",
-	// 		Client: clients.SetGrpcAccount,
-	// 	},
-	// }
+		// Setup gRPC Client
+		Clients: []types.IGrpcClient{
+			&types.GrpcClient{
+				Name: os.Getenv("CLIENT_GRPC_NAME_EXAMPLE"),
+				Host: os.Getenv("CLIENT_GRPC_HOST_EXAMPLE"),
+				Port: os.Getenv("CLIENT_GRPC_PORT_EXAMPLE"),
+				Clients: []types.IGrpcServiceClient{
+					clients.GrpcExample,
+				},
+			},
+		},
+	}
+
 
 	// frameworks.RabbitMQDsn = &types.RabbitMQDsn{
 	// 	Host:        os.Getenv("RQ_HOST"),

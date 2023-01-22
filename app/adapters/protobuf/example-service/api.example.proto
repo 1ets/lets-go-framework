@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package example;
+option go_package="app/adapters/protobuf";
+
+message RequestExample {
+ string name = 1;
+}
+
+message ResponseExample {
+ uint32 code = 1;    // 201, 500
+	string status = 2;  // success, failed
+	string message = 3; // error message when code is 500
+ Greeting data = 4;      // data
+}
+
+message Greeting {
+ string greeting = 1;
+}
+
+service ExampleService {
+	rpc Example(RequestExample) returns (ResponseExample){};
+}

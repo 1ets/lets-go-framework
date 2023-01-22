@@ -17,7 +17,7 @@ var Initializer = []func(){
 // List of framework that start on lets
 var Servers = []func(){
 	frameworks.Http,
-	// frameworks.Grpc,
+	frameworks.Grpc,
 	// frameworks.RabbitMQ,
  drivers.MySQL,
 }
