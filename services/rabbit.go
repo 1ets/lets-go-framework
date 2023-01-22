@@ -2,10 +2,9 @@ package services
 
 import (
 	"lets-go-framework/app/adapters/servers"
-	"lets-go-framework/lets/rabbitmq"
+	"lets-go-framework/lets/types"
 )
 
-func RabbitEventHandler(r *rabbitmq.Engine) {
-	r.Event("transfer-result", servers.RabbitTransferResult)
-	r.Event("balance-transfer-result", servers.RabbitBalanceResult)
+func RabbitMQRouter(route types.Engine) {
+	route.Event("example-event", servers.RabbitExample)
 }

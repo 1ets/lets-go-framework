@@ -1,51 +1,9 @@
-package rabbitmq
+package types
 
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"reflect"
-	"runtime"
 )
-
-// Engine for controller
-type Engine struct {
-	handlers []Handler
-}
-
-func (me *Engine) Event(name string, controller func(*Event)) {
-	fmt.Printf("[RabbitMQ] Event %s --> %v\n", name, runtime.FuncForPC(reflect.ValueOf(controller).Pointer()).Name())
-
-	me.handlers = append(me.handlers, Handler{
-		Name:       name,
-		Controller: controller,
-	})
-}
-
-func (me *Engine) Call(name string, event *Event) {
-	for _, handler := range me.handlers {
-		if handler.Name == name {
-			handler.Controller(event)
-			return
-		}
-	}
-
-	log.Default().Println("Event not found: ", name)
-}
-
-type Handler struct {
-	Name       string
-	Controller func(*Event)
-}
-
-// type MessageContext interface {
-// 	GetEventName() string
-// 	GetData() []byte
-// 	GetReplyTo() string
-// 	GetCorrelationId() string
-// 	GetExchange() string
-// 	GetRoutingKey() string
-// }
 
 type Event struct {
 	Name          string

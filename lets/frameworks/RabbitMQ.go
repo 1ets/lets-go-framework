@@ -2,193 +2,192 @@ package frameworks
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
+	"lets-go-framework/lets"
 	"lets-go-framework/lets/rabbitmq"
 	"lets-go-framework/lets/types"
-	"log"
+	"os"
 
 	"github.com/rabbitmq/amqp091-go"
 )
 
-var RabbitMQDsn types.IRabbitMQDsn
-var RabbitMQConsumer types.IRabbitMQConsumer
+// Initialize RabbitMQ Configuration.
+var RabbitMQConfig types.IRabbitMQConfig
 
-// HTTP service struct
-type rabbitService struct {
-	Dsn        string
-	Engine     rabbitmq.Engine
-	Config     amqp091.Config
-	Connection *amqp091.Connection
-	Channel    *amqp091.Channel
+// RabbitMQ server defirinitions.
+type rabbitServer struct {
+	dsn    string
+	config amqp091.Config
+}
+
+// Initialize RabbitMQ server.
+func (r *rabbitServer) init(config types.IRabbitMQServer) {
+	r.dsn = fmt.Sprintf("amqp://%s:%s@%s:%s", config.GetUsername(), config.GetPassword(), config.GetHost(), config.GetPort())
+	r.config = amqp091.Config{Properties: amqp091.NewConnectionProperties()}
+	r.config.Properties.SetClientConnectionName(os.Getenv("SERVICE_ID"))
+}
+
+// RabbitMQ consumer definitions.
+type rabbitConsumer struct {
+	connection *amqp091.Connection
+	channel    *amqp091.Channel
+	queue      amqp091.Queue
 	deliveries <-chan amqp091.Delivery
 	done       chan error
+	engine     types.Engine
 }
 
-func (rabbit *rabbitService) Init() {
-	fmt.Println("ServiceRabbit.Init()")
-	rabbit.Dsn = fmt.Sprintf("amqp://%s:%s@%s:%s/%s", RabbitMQDsn.GetUsername(), RabbitMQDsn.GetPassword(), RabbitMQDsn.GetHost(), RabbitMQDsn.GetPort(), RabbitMQDsn.GetVirtualHost())
-
-	rabbit.Config = amqp091.Config{Properties: amqp091.NewConnectionProperties()}
-	rabbit.Config.Properties.SetClientConnectionName(RabbitMQConsumer.GetName())
-}
-
-func (rabbit *rabbitService) Serve() {
-	fmt.Println("ServiceRabbit.Connect()")
-
+// Start consuming.
+func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQConsumer) {
 	var err error
-	rabbit.Connection, err = amqp091.DialConfig(rabbit.Dsn, rabbit.Config)
+	var dsn = fmt.Sprintf("%s/%s", server.dsn, consumer.GetVHost())
+
+	r.connection, err = amqp091.DialConfig(dsn, server.config)
 	if err != nil {
 		fmt.Printf("dial: %s", err.Error())
-
 		return
 	}
 
 	// Listen for error on connection
 	go func() {
-		log.Printf("closing: %s", <-rabbit.Connection.NotifyClose(make(chan *amqp091.Error)))
+		lets.LogE("RabbitMQ Server: %s", <-r.connection.NotifyClose(make(chan *amqp091.Error)))
 	}()
 
-	/////////////
-	// CHANNEL //
-	/////////////
-
-	// Create channel connection
-	rabbit.Channel, err = rabbit.Connection.Channel()
-	if err != nil {
-		fmt.Printf("channel: %s", err.Error())
+	// Create channel connection.
+	if r.channel, err = r.connection.Channel(); err != nil {
+		lets.LogE("RabbitMQ Server: %s", err.Error())
 		return
 	}
 
-	// log.Println("got Channel")
-
-	// log.Printf("declaring Exchange (%q)", RabbitMConsumer.GetExchange())
-
-	if err := rabbit.Channel.ExchangeDeclare(
-		RabbitMQConsumer.GetExchange(),     // name of the exchange
-		RabbitMQConsumer.GetExchangeType(), // type
-		true,                               // durable
-		false,                              // delete when complete
-		false,                              // internal
-		false,                              // noWait
-		nil,                                // arguments
-	); err != nil {
-		fmt.Printf("exchange: %s", err.Error())
-		return
-	}
-
-	// log.Printf("declared Exchange, declaring Queue %q", RabbitMConsumer.GetQueue())
-
-	queue, err := rabbit.Channel.QueueDeclare(
-		RabbitMQConsumer.GetQueue(), // name of the queue
-		true,                        // durable
-		false,                       // delete when unused
-		false,                       // exclusive
-		false,                       // noWait
-		nil,                         // arguments
-	)
-	if err != nil {
-		fmt.Printf("queue: %s", err.Error())
-		return
-	}
-
-	log.Printf("declared Queue (%q %d messages, %d consumers), binding to Exchange (key %q)",
-		queue.Name, queue.Messages, queue.Consumers, RabbitMQConsumer.GetRoutingKey())
-
-	if err = rabbit.Channel.QueueBind(
-		queue.Name,                       // name of the queue
-		RabbitMQConsumer.GetRoutingKey(), // bindingKey
-		RabbitMQConsumer.GetExchange(),   // sourceExchange
-		false,                            // noWait
-		nil,                              // arguments
-	); err != nil {
-		fmt.Printf("bind: %s", err.Error())
-		return
-	}
-
-	// log.Printf("Queue bound to Exchange, starting Consume (consumer tag %q)", c.GetName())
-	rabbit.deliveries, err = rabbit.Channel.Consume(
-		queue.Name,                 // name
-		RabbitMQConsumer.GetName(), // consumerTag,
-		false,                      // autoAck
-		false,                      // exclusive
-		false,                      // noLocal
+	// Declare (or using existing) exchange.
+	if err = r.channel.ExchangeDeclare(
+		consumer.GetExchange(),     // name of the exchange
+		consumer.GetExchangeType(), // type
+		true,                       // durable
+		false,                      // delete when complete
+		false,                      // internal
 		false,                      // noWait
 		nil,                        // arguments
-	)
-	if err != nil {
+	); err != nil {
+		lets.LogE("RabbitMQ Server: %s", err.Error())
+		return
+	}
+
+	// Declare (or using existing) queue.
+	if r.queue, err = r.channel.QueueDeclare(
+		consumer.GetQueue(), // name of the queue
+		true,                // durable
+		false,               // delete when unused
+		false,               // exclusive
+		false,               // noWait
+		nil,                 // arguments
+	); err != nil {
+		lets.LogE("RabbitMQ Server: %s", err.Error())
+		return
+	}
+
+	// Bind queue to exchange.
+	if err = r.channel.QueueBind(
+		r.queue.Name,             // name of the queue
+		consumer.GetRoutingKey(), // routing key
+		consumer.GetExchange(),   // sourceExchange
+		false,                    // noWait
+		nil,                      // arguments
+	); err != nil {
+		lets.LogE("RabbitMQ Server: %s", err.Error())
+		return
+	}
+
+	// Consume message
+	if r.deliveries, err = r.channel.Consume(
+		r.queue.Name,       // name
+		consumer.GetName(), // consumerTag,
+		false,              // autoAck
+		false,              // exclusive
+		false,              // noLocal
+		false,              // noWait
+		nil,                // arguments
+	); err != nil {
 		fmt.Printf("consume: %s", err.Error())
 		return
 	}
 
 	cleanup := func() {
-		log.Printf("handle: deliveries channel closed")
-		rabbit.done <- nil
+		lets.LogE("RabbitMQ Server: %s", "Delivery channel is closed.")
+		r.done <- nil
 	}
-
 	defer cleanup()
 
-	var deliveryCount int = 0
-	var verbose = flag.Bool("verbose", true, "enable verbose output of message data")
-	var autoAck = flag.Bool("auto_ack", false, "enable message auto-ack")
+	var deliveryCount uint64 = 0
+	// var verbose = flag.Bool("verbose", true, "enable verbose output of message data")
+	// var autoAck = flag.Bool("auto_ack", false, "enable message auto-ack")
 
-	for d := range rabbit.deliveries {
-		deliveryCount++
-		if *verbose {
-			log.Printf(
-				"got %d Byte delivery: [%v] %q",
-				len(d.Body),
-				d.DeliveryTag,
-				d.Body,
-			)
-		} else {
-			if deliveryCount%65536 == 0 {
-				log.Printf("delivery count %d", deliveryCount)
-			}
+	// Waiting message
+	for delivery := range r.deliveries {
+		if consumer.GetDebug() {
+			deliveryCount++
+			lets.LogD("RabbitMQ Server: message no.: %d", deliveryCount)
+			lets.LogD("RabbitMQ Server: %d Byte delivery: [%v] %q", len(delivery.Body), delivery.DeliveryTag, delivery.Body)
 		}
 
-		// rabbit.onMessage(&d)
-
+		// Bind body into types.RabbitBody.
 		var body types.RabbitBody
-		err := json.Unmarshal(d.Body, &body)
+		err := json.Unmarshal(delivery.Body, &body)
 		if err != nil {
-			log.Default().Println("Json Body Error: ", err.Error())
-			return
+			lets.LogE("RabbitMQ Server: ", err.Error())
+			continue
 		}
 
-		data, err := json.Marshal(body.Data)
-		if err != nil {
-			log.Default().Println("Invalid data format", err.Error())
-			return
-		}
+		// Read reply to
+		var replyTo types.ReplyTo
+		json.Unmarshal([]byte(delivery.ReplyTo), &replyTo)
 
-		var replyTo rabbitmq.ReplyTo
-		json.Unmarshal([]byte(d.ReplyTo), &replyTo)
-
-		event := rabbitmq.Event{
+		// Create event data.
+		event := types.Event{
 			Name:          body.Event,
-			Data:          data,
+			Data:          body.Data,
 			ReplyTo:       replyTo,
-			CorrelationId: d.CorrelationId,
-			Exchange:      d.Exchange,
-			RoutingKey:    d.RoutingKey,
+			CorrelationId: delivery.CorrelationId,
+			Exchange:      delivery.Exchange,
+			RoutingKey:    delivery.RoutingKey,
 		}
 
-		rabbit.Engine.Call(event.Name, &event)
+		// Call event handler.
+		r.engine.Call(event.Name, &event)
 
-		if !*autoAck {
-			d.Ack(false)
-		}
+		delivery.Ack(false)
 	}
 }
 
 // Define rabbit service host and port
 func RabbitMQ() {
-	fmt.Println("LoadRabbitFramework()")
+	if RabbitMQConfig == nil {
+		return
+	}
 
-	var rabbitService rabbitService
+	// Running RabbitMQ
+	if servers := RabbitMQConfig.GetServers(); len(servers) != 0 {
+		lets.LogI("RabbitMQ Starting ...")
 
-	rabbitService.Init()
-	// services.RabbitEventHandler(&rabbitService.Engine)
-	rabbitService.Serve()
+		for _, server := range servers {
+			var rs rabbitServer
+			rs.init(server)
+
+			// Consuming RabbitMQ.
+			if consumers := server.GetConsumers(); len(consumers) != 0 {
+				lets.LogI("RabbitMQ Consumer Starting ...")
+
+				for _, consumer := range consumers {
+					var rc = rabbitConsumer{
+						engine: &rabbitmq.Engine{
+							Debug: consumer.GetDebug(),
+						},
+					}
+
+					consumer.GetListener()(rc.engine)
+					rc.consume(&rs, consumer)
+				}
+			}
+		}
+	}
 }
