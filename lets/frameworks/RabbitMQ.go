@@ -1,12 +1,14 @@
 package frameworks
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"lets-go-framework/lets"
 	"lets-go-framework/lets/rabbitmq"
 	"lets-go-framework/lets/types"
 	"os"
+	"time"
 
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -16,33 +18,23 @@ var RabbitMQConfig types.IRabbitMQConfig
 
 // RabbitMQ server defirinitions.
 type rabbitServer struct {
-	dsn    string
-	config amqp091.Config
+	dsn        string
+	config     amqp091.Config
+	connection *amqp091.Connection
+	channel    *amqp091.Channel
 }
 
 // Initialize RabbitMQ server.
 func (r *rabbitServer) init(config types.IRabbitMQServer) {
-	r.dsn = fmt.Sprintf("amqp://%s:%s@%s:%s", config.GetUsername(), config.GetPassword(), config.GetHost(), config.GetPort())
+	r.dsn = fmt.Sprintf("amqp://%s:%s@%s:%s/%s", config.GetUsername(), config.GetPassword(), config.GetHost(), config.GetPort(), config.GetVHost())
 	r.config = amqp091.Config{Properties: amqp091.NewConnectionProperties()}
 	r.config.Properties.SetClientConnectionName(os.Getenv("SERVICE_ID"))
 }
 
-// RabbitMQ consumer definitions.
-type rabbitConsumer struct {
-	connection *amqp091.Connection
-	channel    *amqp091.Channel
-	queue      amqp091.Queue
-	deliveries <-chan amqp091.Delivery
-	done       chan error
-	engine     types.Engine
-}
-
 // Start consuming.
-func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQConsumer) {
+func (r *rabbitServer) connect() {
 	var err error
-	var dsn = fmt.Sprintf("%s/%s", server.dsn, consumer.GetVHost())
-
-	r.connection, err = amqp091.DialConfig(dsn, server.config)
+	r.connection, err = amqp091.DialConfig(r.dsn, r.config)
 	if err != nil {
 		fmt.Printf("dial: %s", err.Error())
 		return
@@ -58,23 +50,28 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 		lets.LogE("RabbitMQ Server: %s", err.Error())
 		return
 	}
+}
 
-	// Declare (or using existing) exchange.
-	if err = r.channel.ExchangeDeclare(
-		consumer.GetExchange(),     // name of the exchange
-		consumer.GetExchangeType(), // type
-		true,                       // durable
-		false,                      // delete when complete
-		false,                      // internal
-		false,                      // noWait
-		nil,                        // arguments
-	); err != nil {
+// RabbitMQ consumer definitions.
+type rabbitConsumer struct {
+	queue      amqp091.Queue
+	deliveries <-chan amqp091.Delivery
+	done       chan error
+	engine     types.Engine
+}
+
+// Start consuming.
+func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQConsumer) {
+	var err error
+
+	// Create channel connection.
+	if server.channel, err = server.connection.Channel(); err != nil {
 		lets.LogE("RabbitMQ Server: %s", err.Error())
 		return
 	}
 
 	// Declare (or using existing) queue.
-	if r.queue, err = r.channel.QueueDeclare(
+	if r.queue, err = server.channel.QueueDeclare(
 		consumer.GetQueue(), // name of the queue
 		true,                // durable
 		false,               // delete when unused
@@ -87,7 +84,7 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 	}
 
 	// Bind queue to exchange.
-	if err = r.channel.QueueBind(
+	if err = server.channel.QueueBind(
 		r.queue.Name,             // name of the queue
 		consumer.GetRoutingKey(), // routing key
 		consumer.GetExchange(),   // sourceExchange
@@ -99,7 +96,7 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 	}
 
 	// Consume message
-	if r.deliveries, err = r.channel.Consume(
+	if r.deliveries, err = server.channel.Consume(
 		r.queue.Name,       // name
 		consumer.GetName(), // consumerTag,
 		false,              // autoAck
@@ -146,7 +143,7 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 		event := types.Event{
 			Name:          body.Event,
 			Data:          body.Data,
-			ReplyTo:       replyTo,
+			ReplyTo:       &replyTo,
 			CorrelationId: delivery.CorrelationId,
 			Exchange:      delivery.Exchange,
 			RoutingKey:    delivery.RoutingKey,
@@ -157,6 +154,53 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 
 		delivery.Ack(false)
 	}
+}
+
+// RabbitMQ consumer definitions.
+type RabbitPublisher struct {
+	channel *amqp091.Channel
+	name    string
+}
+
+func (r *RabbitPublisher) init(server *rabbitServer, publisher types.IRabbitMQPublisher) {
+	r.channel = server.channel
+	r.name = publisher.GetName()
+}
+
+func (r *RabbitPublisher) Publish(event types.IEvent) (err error) {
+	var body = event.GetBody()
+	// Encode object to json string
+	if event.GetDebug() {
+		seqNo := r.channel.GetNextPublishSeqNo()
+		lets.LogD("RabbitMQ Publisher: sequence no. %d; %d Bytes", seqNo, len(body))
+		lets.LogD("RabbitMQ Publisher: to: exchange '%s'; key: '%s'", event.GetExchange(), event.GetRoutingKey())
+		lets.LogD("RabbitMQ Publisher: body \n%s", string(body))
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err = r.channel.PublishWithContext(ctx,
+		event.GetExchange(),   // Exchange
+		event.GetRoutingKey(), // RoutingKey or queues
+		false,                 // Mandatory
+		false,                 // Immediate
+		amqp091.Publishing{
+			Headers:         amqp091.Table{},
+			ContentType:     "application/json",
+			ContentEncoding: "",
+			Body:            []byte(body),
+			DeliveryMode:    amqp091.Transient, // 1=non-persistent, 2=persistent
+			Priority:        0,                 // 0-9
+			// a bunch of application/implementation-specific fields
+			ReplyTo:       event.GetReplyTo().GetJson(),
+			CorrelationId: event.GetCorrelationId(),
+		},
+	); err != nil {
+		lets.LogE("RabbitMQ Publisher: %s", err.Error())
+		return
+	}
+
+	return
 }
 
 // Define rabbit service host and port
@@ -172,6 +216,7 @@ func RabbitMQ() {
 		for _, server := range servers {
 			var rs rabbitServer
 			rs.init(server)
+			rs.connect()
 
 			// Consuming RabbitMQ.
 			if consumers := server.GetConsumers(); len(consumers) != 0 {
@@ -185,7 +230,20 @@ func RabbitMQ() {
 					}
 
 					consumer.GetListener()(rc.engine)
-					rc.consume(&rs, consumer)
+					go rc.consume(&rs, consumer)
+				}
+			}
+
+			if publishers := server.GetPublishers(); len(publishers) != 0 {
+				lets.LogI("RabbitMQ Publisher Starting ...")
+				for _, publisher := range publishers {
+					var rp RabbitPublisher
+					rp.init(&rs, publisher)
+
+					lets.LogI("RabbitMQ Publisher: %s", publisher.GetName())
+					for _, client := range publisher.GetClients() {
+						client.SetConnection(&rp)
+					}
 				}
 			}
 		}

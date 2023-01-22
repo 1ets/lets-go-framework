@@ -34,5 +34,5 @@ func (me *Engine) Call(name string, event *types.Event) {
 		return
 	}
 
-	lets.LogE("Rabbit Event: not found: ", name)
+	lets.LogE("Rabbit Event: not found: %s", name)
 }

@@ -22,7 +22,7 @@ func Example(request data.RequestExample) (response data.ResponseExample, err er
 
 // gRPC server example controller
 func GrpcServerExample(request data.RequestExample) (response data.ResponseExample, err error) {
-	response.Code = http.StatusCreated
+	response.Code = http.StatusOK
 	response.Status = "success"
 	response.Greeting = fmt.Sprintf("Hello %s! this message was created by grpc server.", request.Name)
 
@@ -41,9 +41,27 @@ func GrpcClientExample(request data.RequestExample) (response data.ResponseExamp
 
 // RabbitMQ consumer example controller
 func RabbitConsumerExample(request data.RequestExample) (response data.ResponseExample, err error) {
-	response.Code = http.StatusCreated
+	response.Code = http.StatusOK
 	response.Status = "success"
 	response.Greeting = fmt.Sprintf("Hello %s! this message was created by rabbit consumer.", request.Name)
+
+	return
+}
+
+// RabbitMQ client example controller
+func RabbitPublisherExample(mode string, request data.RequestExample) (response data.ResponseExample, err error) {
+	if mode == "sync" {
+		response, err = clients.RabbitExample.GreetingSync(&request)
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	response, err = clients.RabbitExample.GreetingAsync(&request)
+	if err != nil {
+		return
+	}
 
 	return
 }

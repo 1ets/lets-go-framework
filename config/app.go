@@ -49,10 +49,11 @@ func App() {
 
 			// Setup RabbitMQ Server.
 			&types.RabbitMQServer{
-				Host:     os.Getenv("RABBIT_HOST"),
-				Port:     os.Getenv("RABBIT_PORT"),
-				Username: os.Getenv("RABBIT_USERNAME"),
-				Password: os.Getenv("RABBIT_PASSWORD"),
+				Host:        os.Getenv("RABBIT_HOST"),
+				Port:        os.Getenv("RABBIT_PORT"),
+				Username:    os.Getenv("RABBIT_USERNAME"),
+				Password:    os.Getenv("RABBIT_PASSWORD"),
+				VirtualHost: os.Getenv("RABBIT_VHOST"),
 
 				// Possible to create multiple consumer for multiple purpose.
 				Consumers: []types.IRabbitMQConsumer{
@@ -60,13 +61,21 @@ func App() {
 					// Setup Consumers
 					&types.RabbitMQConsumer{
 						Name:         os.Getenv("LISTEN_RABBIT_NAME"),
-						VirtualHost:  os.Getenv("LISTEN_RABBIT_VHOST"),
 						Exchange:     os.Getenv("LISTEN_RABBIT_EXCHANGE"),
 						ExchangeType: amqp091.ExchangeDirect,
 						RoutingKey:   os.Getenv("LISTEN_RABBIT_ROUTING_KEY"),
 						Queue:        os.Getenv("LISTEN_RABBIT_QUEUE"),
 						Debug:        os.Getenv("LISTEN_RABBIT_DEBUG"),
 						Listener:     services.RabbitMQRouter,
+					},
+				},
+				Publishers: []types.IRabbitMQPublisher{
+					// Setup Publisher
+					&types.RabbitMQPublisher{
+						Name: os.Getenv("LISTEN_RABBIT_NAME"),
+						Clients: []types.IRabbitMQServiceClient{
+							clients.RabbitExample,
+						},
 					},
 				},
 			},

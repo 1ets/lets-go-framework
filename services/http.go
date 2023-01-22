@@ -15,4 +15,6 @@ func HttpRouter(route *gin.Engine) {
 	route.POST("example", servers.HttpPostExample)
 	route.GET("example-database", servers.HttpGetDatabaseExample)
 	route.POST("example-grpc", servers.HttpGrpcExample)
+	route.POST("example-rabbitmq-async", servers.HttpRabbitAsyncExample)
+	route.POST("example-rabbitmq-sync", servers.HttpRabbitSyncExample)
 }

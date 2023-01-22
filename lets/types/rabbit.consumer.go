@@ -20,7 +20,6 @@ const (
 // Interface for dsn accessable method
 type IRabbitMQConsumer interface {
 	GetName() string
-	GetVHost() string
 	GetExchange() string
 	GetExchangeType() string
 	GetRoutingKey() string
@@ -33,7 +32,6 @@ type IRabbitMQConsumer interface {
 // Target host information.
 type RabbitMQConsumer struct {
 	Name         string `json:"name"`
-	VirtualHost  string `json:"vhost"`
 	Exchange     string `json:"exchange"`
 	ExchangeType string `json:"type"`
 	RoutingKey   string `json:"routing_key"`
@@ -50,17 +48,6 @@ func (r *RabbitMQConsumer) GetName() string {
 		return LISTEN_RABBIT_NAME
 	}
 	return r.Name
-}
-
-// Get Virtual Host.
-func (r *RabbitMQConsumer) GetVHost() string {
-	if r.VirtualHost == "" {
-		lets.LogW("Config: LISTEN_RABBIT_VHOST is not set, using default configuration.")
-
-		return LISTEN_RABBIT_VHOST
-	}
-
-	return r.VirtualHost
 }
 
 // Get Exchange.
@@ -109,7 +96,7 @@ func (r *RabbitMQConsumer) GetQueue() string {
 
 // Get Debug.
 func (r *RabbitMQConsumer) GetDebug() bool {
-	if r.Queue == "" {
+	if r.Debug == "" {
 		lets.LogW("Configs: LISTEN_RABBIT_QUEUE is not set, using default configuration.")
 
 		return LISTEN_RABBIT_DEBUG

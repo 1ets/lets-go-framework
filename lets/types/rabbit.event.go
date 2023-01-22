@@ -3,18 +3,31 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"lets-go-framework/lets"
 )
+
+type IEvent interface {
+	GetName() string
+	GetData() interface{}
+	GetReplyTo() *ReplyTo
+	GetCorrelationId() string
+	GetExchange() string
+	GetRoutingKey() string
+	GetBody() []byte
+	GetDebug() bool
+}
 
 type Event struct {
 	Name          string
 	Exchange      string
 	RoutingKey    string
 	Data          interface{}
-	ReplyTo       ReplyTo
+	ReplyTo       *ReplyTo
 	CorrelationId string
+	Debug         bool
 }
 
-func (m *Event) GetEventName() string {
+func (m *Event) GetName() string {
 	return m.Name
 }
 
@@ -22,7 +35,7 @@ func (m *Event) GetData() interface{} {
 	return m.Data
 }
 
-func (m *Event) GetReplyTo() ReplyTo {
+func (m *Event) GetReplyTo() *ReplyTo {
 	return m.ReplyTo
 }
 
@@ -36,6 +49,19 @@ func (m *Event) GetExchange() string {
 
 func (m *Event) GetRoutingKey() string {
 	return m.RoutingKey
+}
+func (m *Event) GetDebug() bool {
+	return m.Debug
+}
+
+func (m *Event) GetBody() []byte {
+	body, err := json.Marshal(RabbitBody{Event: m.Name, Data: m.Data})
+	if err != nil {
+		lets.LogE("RabbitEvent: %s", err.Error())
+		return nil
+	}
+
+	return body
 }
 
 type ReplyTo struct {
