@@ -17,9 +17,9 @@ var Initializer = []func(){
 // List of framework that start on lets
 var Servers = []func(){
 	frameworks.Http,
-	// frameworks.Grpc,
+	frameworks.Grpc,
 	// frameworks.RabbitMQ,
- drivers.MySQL,
+	drivers.MySQL,
 }
 
 // Add initialization function and run before application starting
@@ -37,7 +37,7 @@ func OnInit() {
 
 // Bootstrap frameworks
 func OnMain() {
-	lets.LogI("Starting up")
+	lets.LogI("Booting ...")
 	for _, runner := range Servers {
 		go runner()
 	}

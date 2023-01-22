@@ -14,4 +14,5 @@ func HttpMiddleware(middleware *gin.Engine) {
 func HttpRouter(route *gin.Engine) {
 	route.POST("example", servers.HttpPostExample)
 	route.GET("example-database", servers.HttpGetDatabaseExample)
+	route.POST("example-grpc", servers.HttpGrpcExample)
 }

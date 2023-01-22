@@ -2,6 +2,7 @@ package frameworks
 
 import (
 	"fmt"
+	"lets-go-framework/lets"
 	"lets-go-framework/lets/types"
 	"log"
 	"net"
@@ -10,77 +11,85 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var GrpcServerConfig types.IGrpcServer
-var GrpcClientConfig []types.GrpcClient
+// gRPC framework configurations
+var GrpcConfig types.IGrpcConfig
 
-// 	grpcDriver := drivers.NewGrpc()
-// 	adapters.GgrpcService(grpcDriver)
-// 	grpcDriver.Connect()
-// 	adapters.GrpcClient(grpcDriver)
-// }
-
-type grpcService struct {
-	Server string
-	Engine *grpc.Server
-	Router func(*grpc.Server)
+// gRPC Server
+type grpcServer struct {
+	dsn    string
+	opts   []grpc.ServerOption
+	engine *grpc.Server
+	router func(*grpc.Server)
 }
 
-func (rpc *grpcService) Init() {
-	fmt.Println("grpcService.Init()")
-
-	var opts []grpc.ServerOption
-
-	rpc.Server = fmt.Sprintf("%s:%s", GrpcServerConfig.GetHost(), GrpcServerConfig.GetPort())
-	rpc.Engine = grpc.NewServer(opts...)
-	rpc.Router = GrpcServerConfig.GetRouter()
+// Internal function for initialize gRPC server
+func (g *grpcServer) init(config types.IGrpcServer) {
+	g.dsn = fmt.Sprintf(":%s", config.GetPort())
+	g.engine = grpc.NewServer(g.opts...)
+	g.router = config.GetRouter()
 }
 
-func (rpc *grpcService) Serve() {
-	fmt.Println("grpcService.Serve()")
-
-	listener, err := net.Listen("tcp", rpc.Server)
+// Internal function for starting gRPC server
+func (rpc *grpcServer) serve() {
+	listener, err := net.Listen("tcp", rpc.dsn)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	rpc.Engine.Serve(listener)
+	rpc.engine.Serve(listener)
 }
 
 type grpcClient struct {
-	Server string
-	Engine *grpc.ClientConn
+	name   string
+	dsn    string
+	engine *grpc.ClientConn
 }
 
-func (rpc *grpcClient) Init() {
-	fmt.Println("grpcService.Init()")
-
-	for _, config := range GrpcClientConfig {
-		dsn := fmt.Sprintf("%s:%s", config.GetHost(), config.GetPort())
-		conn, err := grpc.Dial(dsn, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		fmt.Println("Connect to ", dsn)
-		if err != nil {
-			fmt.Println("Error ", err.Error())
-			return
-		}
-
-		config.Client(conn)
-	}
+func (rpc *grpcClient) init(config types.IGrpcClient) {
+	rpc.name = config.GetName()
+	rpc.dsn = fmt.Sprintf("%s:%s", config.GetHost(), config.GetPort())
 }
 
-func (rpc *grpcClient) Connect() {
-	fmt.Println("grpcService.Serve()")
+func (rpc *grpcClient) connect() (err error) {
+	rpc.engine, err = grpc.Dial(rpc.dsn, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	return
 }
 
-// Define rpcservice host and port
+// Run gRPC server and client
 func Grpc() {
-	fmt.Println("Grpc()")
+	if GrpcConfig == nil {
+		return
+	}
 
-	var rpcServer grpcService
-	rpcServer.Init()
-	rpcServer.Router(rpcServer.Engine)
-	rpcServer.Serve()
+	// Running gRPC server
+	if config := GrpcConfig.GetServer(); GrpcConfig.GetServer() != nil {
+		lets.LogI("gRPC Server Starting ...")
 
-	var rpcClient grpcClient
-	rpcClient.Init()
-	rpcClient.Connect()
+		var rpcServer grpcServer
+		rpcServer.init(config)
+		rpcServer.router(rpcServer.engine)
+		go rpcServer.serve()
+	}
+
+	// Running gRPC client
+	if clients := GrpcConfig.GetClients(); len(clients) != 0 {
+		lets.LogI("gRPC Client Starting ...")
+
+		for _, config := range clients {
+			var rpcClient grpcClient
+
+			lets.LogI("gRPC Client: %s", config.GetName())
+			rpcClient.init(config)
+
+			if err := rpcClient.connect(); err != nil {
+				lets.LogE("gRPC Client: error %s: desc %s", err.Error())
+				lets.LogE("Cannot connect gRPC to %s", config.GetName())
+				continue
+			}
+
+			for _, isc := range config.GetClients() {
+				isc.SetConnection(rpcClient.engine)
+			}
+		}
+	}
 }

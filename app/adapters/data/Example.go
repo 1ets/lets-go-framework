@@ -11,3 +11,11 @@ type ResponseExample struct {
 
 	Greeting string `json:"greeting"`
 }
+
+type RequestDatabaseExample struct{}
+
+type ResponsDatabaseeExample struct {
+	types.Response
+
+	Note string `json:"note"`
+}
