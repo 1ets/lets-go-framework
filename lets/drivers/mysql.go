@@ -23,8 +23,6 @@ type mysqlProvider struct {
 }
 
 func (m *mysqlProvider) Connect() {
-	lets.LogI("MySQL Connect")
-
 	var logType logger.Interface = logger.Default.LogMode(logger.Warn)
 	if m.debug {
 		logType = logger.Default.LogMode(logger.Info)
@@ -62,7 +60,6 @@ func (m *mysqlProvider) Connect() {
 	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
 	m.Sql.SetConnMaxLifetime(time.Hour)
 
-	lets.LogI("MySQL Connected")
 }
 
 // Define MySQL service host and port
@@ -71,11 +68,13 @@ func MySQL() {
 		return
 	}
 
+	lets.LogI("MySQL Starting ...")
+
 	mySQL := mysqlProvider{
 		DSN:   MySQLConfig.GetDsn(),
 		debug: MySQLConfig.DebugMode(),
 	}
 	mySQL.Connect()
 
-	MySQLConfig.GetRepository().SetAdapter(mySQL.Gorm)
+	MySQLConfig.GetRepository().SetDriver(mySQL.Gorm)
 }
