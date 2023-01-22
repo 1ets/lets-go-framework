@@ -1,18 +1,21 @@
 package types
 
 import (
+	"lets-go-framework/lets"
+
 	"github.com/gin-gonic/gin"
-	"github.com/kataras/golog"
 )
 
-// Default configuration
+// Default gRPC configuration
 const (
-	SERVE_HTTP_PORT = "5000"
+	SERVER_HTTP_PORT = "5000"
+	SERVER_HTTP_MODE = "debug"
 )
 
 // Interface for accessable method
 type IHttpServer interface {
 	GetPort() string
+	GetMode() string
 	GetMiddleware() func(*gin.Engine)
 	GetRouter() func(*gin.Engine)
 }
@@ -20,6 +23,7 @@ type IHttpServer interface {
 // Serve information
 type HttpServer struct {
 	Port       string
+	Mode       string
 	Middleware func(*gin.Engine)
 	Router     func(*gin.Engine)
 }
@@ -27,12 +31,23 @@ type HttpServer struct {
 // Get Port
 func (hs *HttpServer) GetPort() string {
 	if hs.Port == "" {
-		golog.Warn("Configs Http: SERVE_HTTP_PORT is not set, using default configuration.")
+		lets.LogW("Config: SERVER_HTTP_PORT is not set, using default configuration.")
 
-		return SERVE_HTTP_PORT
+		return SERVER_HTTP_PORT
 	}
 
 	return hs.Port
+}
+
+// Get Mode
+func (hs *HttpServer) GetMode() string {
+	if hs.Mode == "" {
+		lets.LogW("Config: SERVER_HTTP_MODE is not set, using default configuration.")
+
+		return SERVER_HTTP_MODE
+	}
+
+	return hs.Mode
 }
 
 // Get Middleware

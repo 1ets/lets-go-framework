@@ -10,8 +10,10 @@ import (
 
 // Load configuration into the kernel
 func App() {
+	// Setup HTTP server
 	frameworks.HttpConfig = &types.HttpServer{
-		Port:       os.Getenv("SERVE_HTTP_PORT"),
+		Port:       os.Getenv("SERVER_HTTP_PORT"),
+		Mode:       os.Getenv("SERVER_HTTP_MODE"),
 		Middleware: services.HttpMiddleware,
 		Router:     services.HttpRouter,
 	}

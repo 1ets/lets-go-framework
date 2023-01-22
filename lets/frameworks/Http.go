@@ -2,12 +2,14 @@ package frameworks
 
 import (
 	"fmt"
+	"lets-go-framework/lets"
 	"lets-go-framework/lets/types"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
+// HTTP Configurations
 var HttpConfig types.IHttpServer
 
 // HTTP service struct
@@ -20,7 +22,7 @@ type httpService struct {
 
 // Initialize service
 func (http *httpService) Init() {
-	fmt.Println("httpService.Init()")
+	gin.SetMode(HttpConfig.GetMode())
 
 	http.Server = fmt.Sprintf(":%s", HttpConfig.GetPort())
 	http.Engine = gin.New()
@@ -56,8 +58,6 @@ func (http *httpService) Init() {
 
 // Run service
 func (http *httpService) Serve() {
-	fmt.Println("httpService.Serve()")
-
 	http.Engine.Run(http.Server)
 }
 
@@ -67,7 +67,7 @@ func Http() {
 		return
 	}
 
-	fmt.Println("httpService.LoadHttpFramework()")
+	lets.LogI("HTTP Server Starting ...")
 
 	var http httpService
 
