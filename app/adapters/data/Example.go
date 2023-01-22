@@ -19,27 +19,3 @@ type ResponsDatabaseeExample struct {
 
 	Note string `json:"note"`
 }
-
-// type RequestGrpcExample struct {
-// 	Name     string `json:"name" form:"name"`
-// 	Email    string `json:"email" form:"email"`
-// 	Password string `json:"password" form:"password"`
-// }
-
-// type ResponseGrpcExample struct {
-// 	types.Response
-
-// 	Data User `json:"data"`
-// }
-
-// type RequestRabbitExample struct {
-// 	Name     string `json:"name" form:"name"`
-// 	Email    string `json:"email" form:"email"`
-// 	Password string `json:"password" form:"password"`
-// }
-
-// type ResponsRabbitcExample struct {
-// 	types.Response
-
-// 	Data User `json:"data"`
-// }

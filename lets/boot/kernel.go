@@ -37,7 +37,7 @@ func OnInit() {
 
 // Bootstrap frameworks
 func OnMain() {
-	lets.LogI("Starting up")
+	lets.LogI("Booting ...")
 	for _, runner := range Servers {
 		go runner()
 	}
