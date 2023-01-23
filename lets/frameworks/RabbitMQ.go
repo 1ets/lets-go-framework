@@ -116,15 +116,12 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 	defer cleanup()
 
 	var deliveryCount uint64 = 0
-	// var verbose = flag.Bool("verbose", true, "enable verbose output of message data")
-	// var autoAck = flag.Bool("auto_ack", false, "enable message auto-ack")
 
 	// Waiting message
 	for delivery := range r.deliveries {
 		if consumer.GetDebug() {
 			deliveryCount++
-			lets.LogD("RabbitMQ Server: message no.: %d", deliveryCount)
-			lets.LogD("RabbitMQ Server: %d Byte delivery: [%v] %q", len(delivery.Body), delivery.DeliveryTag, delivery.Body)
+			lets.LogD("RabbitMQ Server: %d Byte delivery: [%v] \n%q", len(delivery.Body), delivery.DeliveryTag, delivery.Body)
 		}
 
 		// Bind body into types.RabbitBody.
@@ -172,9 +169,8 @@ func (r *RabbitPublisher) Publish(event types.IEvent) (err error) {
 	// Encode object to json string
 	if event.GetDebug() {
 		seqNo := r.channel.GetNextPublishSeqNo()
-		lets.LogD("RabbitMQ Publisher: sequence no. %d; %d Bytes", seqNo, len(body))
 		lets.LogD("RabbitMQ Publisher: to: exchange '%s'; key: '%s'", event.GetExchange(), event.GetRoutingKey())
-		lets.LogD("RabbitMQ Publisher: body \n%s", string(body))
+		lets.LogD("RabbitMQ Publisher: sequence no: %d; %d Bytes; Body: \n%s", seqNo, len(body), string(body))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

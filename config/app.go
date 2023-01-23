@@ -68,13 +68,33 @@ func App() {
 						Debug:        os.Getenv("LISTEN_RABBIT_DEBUG"),
 						Listener:     services.RabbitMQRouter,
 					},
+
+					// Another setup for listening saga
+					&types.RabbitMQConsumer{
+						Name:         os.Getenv("LISTEN_RABBIT_NAME_SAGA"),
+						Exchange:     os.Getenv("LISTEN_RABBIT_EXCHANGE_SAGA"),
+						ExchangeType: amqp091.ExchangeDirect,
+						RoutingKey:   os.Getenv("LISTEN_RABBIT_ROUTING_KEY_SAGA"),
+						Queue:        os.Getenv("LISTEN_RABBIT_QUEUE_SAGA"),
+						Debug:        os.Getenv("LISTEN_RABBIT_DEBUG_SAGA"),
+						Listener:     services.RabbitMQRouterSaga,
+					},
 				},
+
+				// Setup Publishers
 				Publishers: []types.IRabbitMQPublisher{
-					// Setup Publisher
 					&types.RabbitMQPublisher{
-						Name: os.Getenv("LISTEN_RABBIT_NAME"),
+						Name: os.Getenv("CALLER_RABBIT_NAME_EXAMPLE"),
 						Clients: []types.IRabbitMQServiceClient{
 							clients.RabbitExample,
+						},
+					},
+					// Another setup for listening saga
+					&types.RabbitMQPublisher{
+						Name: os.Getenv("CALLER_RABBIT_NAME_SAGA"),
+						Clients: []types.IRabbitMQServiceClient{
+							clients.RabbitSagaExample,
+							clients.RabbitSagaExampleCallback,
 						},
 					},
 				},

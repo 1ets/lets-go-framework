@@ -72,7 +72,7 @@ func HttpRabbitAsyncExample(g *gin.Context) {
 	}
 
 	// Call example controller
-	response, err = controllers.RabbitPublisherExample("async", request)
+	response, err = controllers.RabbitPublisherExample(request, "async")
 
 	// Write json response
 	lets.HttpResponseJson(g, response, err)
@@ -91,7 +91,7 @@ func HttpRabbitSyncExample(g *gin.Context) {
 	}
 
 	// Call example controller
-	response, err = controllers.RabbitPublisherExample("sync", request)
+	response, err = controllers.RabbitPublisherExample(request, "sync")
 
 	// Write json response
 	lets.HttpResponseJson(g, response, err)

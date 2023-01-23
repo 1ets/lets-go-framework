@@ -21,7 +21,6 @@ type rabbitExample struct {
 // Its implementation of types.IGrpcServiceClient.
 func (g *rabbitExample) SetConnection(c types.IFrameworkRabbitMQPublisher) {
 	g.c = c
-
 }
 
 // Request greeting to RabbitMQ server.
@@ -94,16 +93,16 @@ func (g *rabbitExample) GreetingAsync(request *data.RequestExample) (callback da
 }
 
 // Reply greeting to RabbitMQ sender.
-func (g *rabbitExample) GreetingCallback(correlationId string, request *data.ResponseExample) (callback data.ResponseExample, err error) {
+func (g *rabbitExample) GreetingCallback(r types.IEvent, data *data.ResponseExample) (callback data.ResponseExample, err error) {
 	var eventName = "callback"
 
 	if err = g.c.Publish(&types.Event{
 		Debug:         true,
 		Name:          eventName,
-		Data:          request,
-		Exchange:      os.Getenv("LISTEN_RABBIT_EXCHANGE"),
-		RoutingKey:    os.Getenv("LISTEN_RABBIT_ROUTING_KEY"),
-		CorrelationId: correlationId,
+		Data:          data,
+		Exchange:      r.GetReplyTo().Exchange,
+		RoutingKey:    r.GetReplyTo().RoutingKey,
+		CorrelationId: r.GetCorrelationId(),
 	}); err != nil {
 		return
 	}
