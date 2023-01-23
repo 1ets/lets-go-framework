@@ -18,6 +18,7 @@ func HttpRouter(route *gin.Engine) {
 	route.POST("example-rabbitmq-async", servers.HttpRabbitAsyncExample)
 	route.POST("example-rabbitmq-sync", servers.HttpRabbitSyncExample)
 
- // SAGA EXAMPLE
+	// SAGA EXAMPLE
 	route.POST("example-saga-stateless", servers.HttpSagaStatelessExample)
+	route.POST("example-saga-stateful", servers.HttpSagaStatefulExample)
 }
