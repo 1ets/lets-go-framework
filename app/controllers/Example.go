@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"lets-go-framework/app/adapters/clients"
 	"lets-go-framework/app/adapters/data"
+	"lets-go-framework/app/repository"
+	"lets-go-framework/lets"
 	"net/http"
 )
 
-// Example controller
+// Example controller.
 func Example(request data.RequestExample) (response data.ResponseExample, err error) {
 	if name := request.Name; request.Name != "" {
 		response.Greeting = fmt.Sprintf("Hello %s, how are you!", name)
@@ -20,7 +22,30 @@ func Example(request data.RequestExample) (response data.ResponseExample, err er
 	return
 }
 
-// gRPC server example controller
+// Example controller interaction with database.
+func DatabaseExample() (response data.ResponseExample, err error) {
+	users := repository.User
+
+	// Repository call
+	data, err := users.Get()
+	if err != nil {
+		return
+	}
+
+	// Create output to terminal
+	go func() {
+		for _, u := range data {
+			lets.LogI(u.Name)
+		}
+	}()
+
+	// Send back response to adapter
+	response.Greeting = fmt.Sprintf("We have %v users!", len(data))
+
+	return
+}
+
+// gRPC server example controller.
 func GrpcServerExample(request data.RequestExample) (response data.ResponseExample, err error) {
 	response.Code = http.StatusOK
 	response.Status = "success"
@@ -29,7 +54,7 @@ func GrpcServerExample(request data.RequestExample) (response data.ResponseExamp
 	return
 }
 
-// gRPC client example controller
+// gRPC client example controller.
 func GrpcClientExample(request data.RequestExample) (response data.ResponseExample, err error) {
 	response, err = clients.GrpcExample.Greeting(&request)
 	if err != nil {
@@ -39,7 +64,7 @@ func GrpcClientExample(request data.RequestExample) (response data.ResponseExamp
 	return
 }
 
-// RabbitMQ consumer example controller
+// RabbitMQ consumer example controller.
 func RabbitConsumerExample(request data.RequestExample) (response data.ResponseExample, err error) {
 	response.Code = http.StatusOK
 	response.Status = "success"
@@ -48,8 +73,9 @@ func RabbitConsumerExample(request data.RequestExample) (response data.ResponseE
 	return
 }
 
-// RabbitMQ client example controller
+// RabbitMQ client example controller.
 func RabbitPublisherExample(mode string, request data.RequestExample) (response data.ResponseExample, err error) {
+	// Wait for reply.
 	if mode == "sync" {
 		response, err = clients.RabbitExample.GreetingSync(&request)
 		if err != nil {
@@ -58,6 +84,7 @@ func RabbitPublisherExample(mode string, request data.RequestExample) (response 
 		return
 	}
 
+	// No wait reply, just send.
 	response, err = clients.RabbitExample.GreetingAsync(&request)
 	if err != nil {
 		return
