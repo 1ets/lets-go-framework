@@ -18,7 +18,7 @@ var Initializer = []func(){
 var Servers = []func(){
 	frameworks.Http,
 	frameworks.Grpc,
-	// frameworks.RabbitMQ,
+	frameworks.RabbitMQ,
 	drivers.MySQL,
 }
 

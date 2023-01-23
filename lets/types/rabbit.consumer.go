@@ -1,17 +1,20 @@
 package types
 
 import (
-	"encoding/json"
-	"fmt"
+	"lets-go-framework/lets"
 
-	"github.com/kataras/golog"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 // Default configuration
 const (
-	RQ_CONSUMER_EXCHANGE    = "default-exchange"
-	RQ_CONSUMER_ROUTING_KEY = "default-routing-key"
-	RQ_CONSUMER_QUEUE       = "default-queue"
+	LISTEN_RABBIT_NAME          = "Default Manager"
+	LISTEN_RABBIT_VHOST         = "/"
+	LISTEN_RABBIT_EXCHANGE      = "lets"
+	LISTEN_RABBIT_EXCHANGE_TYPE = amqp091.ExchangeDirect
+	LISTEN_RABBIT_ROUTING_KEY   = "callback"
+	LISTEN_RABBIT_QUEUE         = "lets.callback"
+	LISTEN_RABBIT_DEBUG         = true
 )
 
 // Interface for dsn accessable method
@@ -21,65 +24,94 @@ type IRabbitMQConsumer interface {
 	GetExchangeType() string
 	GetRoutingKey() string
 	GetQueue() string
+	GetDebug() bool
+	GetListener() func(Engine)
+	GenerateReplyTo() ReplyTo
 }
 
 // Target host information.
 type RabbitMQConsumer struct {
-	Name, Exchange, ExchangeType, RoutingKey, Queue string
+	Name         string `json:"name"`
+	Exchange     string `json:"exchange"`
+	ExchangeType string `json:"type"`
+	RoutingKey   string `json:"routing_key"`
+	Queue        string `json:"queue"`
+	Debug        string `json:"debug"`
+	Listener     func(Engine)
 }
 
-// Get ExchangeName.
-func (rtm *RabbitMQConsumer) GetName() string {
-	return rtm.Name
+// Get Name.
+func (r *RabbitMQConsumer) GetName() string {
+	if r.Name == "" {
+		lets.LogW("Configs: LISTEN_RABBIT_NAME is not set, using default configuration.")
+
+		return LISTEN_RABBIT_NAME
+	}
+	return r.Name
 }
 
-// Get ExchangeName.
-func (rtm *RabbitMQConsumer) GetExchange() string {
-	if rtm.Exchange == "" {
-		golog.Warn("Configs RabbitMQ: RQ_CONSUMER_EXCHANGE is not set in .env file, using default configuration.")
+// Get Exchange.
+func (r *RabbitMQConsumer) GetExchange() string {
+	if r.Exchange == "" {
+		lets.LogW("Configs: LISTEN_RABBIT_EXCHANGE is not set, using default configuration.")
 
-		return RQ_CONSUMER_EXCHANGE
+		return LISTEN_RABBIT_EXCHANGE
 	}
 
-	return rtm.Exchange
+	return r.Exchange
 }
 
-// Get ExchangeName.
-func (rtm *RabbitMQConsumer) GetExchangeType() string {
-	return rtm.ExchangeType
+// Get Exchange Type.
+func (r *RabbitMQConsumer) GetExchangeType() string {
+	if r.ExchangeType == "" {
+		lets.LogW("Config: LISTEN_RABBIT_EXCHANGE_TYPE is not set, using default configuration.")
+
+		return LISTEN_RABBIT_EXCHANGE_TYPE
+	}
+
+	return r.ExchangeType
 }
 
-// Get QueueName.
-func (rtm *RabbitMQConsumer) GetRoutingKey() string {
-	if rtm.RoutingKey == "" {
-		golog.Warn("Configs RabbitMQ: RQ_CONSUMER_ROUTING_KEY is not set in .env file, using default configuration.")
+// Get Routing Key.
+func (r *RabbitMQConsumer) GetRoutingKey() string {
+	if r.RoutingKey == "" {
+		lets.LogW("Configs: LISTEN_RABBIT_ROUTING_KEY is not set, using default configuration.")
 
-		return RQ_CONSUMER_ROUTING_KEY
+		return LISTEN_RABBIT_ROUTING_KEY
 	}
 
-	return rtm.RoutingKey
+	return r.RoutingKey
 }
 
-func (rtm *RabbitMQConsumer) GetQueue() string {
-	if rtm.Queue == "" {
-		golog.Warn("Configs RabbitMQ: RQ_CONSUMER_QUEUE is not set in .env file, using default configuration.")
+// Get Queue.
+func (r *RabbitMQConsumer) GetQueue() string {
+	if r.Queue == "" {
+		lets.LogW("Configs: LISTEN_RABBIT_QUEUE is not set, using default configuration.")
 
-		return RQ_CONSUMER_QUEUE
+		return LISTEN_RABBIT_QUEUE
 	}
 
-	return rtm.Queue
+	return r.Queue
 }
 
-func (rtm *RabbitMQConsumer) GenerateReplyTo() string {
-	replyTo := map[string]string{
-		"exchange":    rtm.GetExchange(),
-		"routing_key": rtm.GetRoutingKey(),
+// Get Debug.
+func (r *RabbitMQConsumer) GetDebug() bool {
+	if r.Debug == "" {
+		lets.LogW("Configs: LISTEN_RABBIT_QUEUE is not set, using default configuration.")
+
+		return LISTEN_RABBIT_DEBUG
 	}
 
-	_replyTo, err := json.Marshal(replyTo)
-	if err != nil {
-		fmt.Println("cant marshal replyTos")
-	}
+	return r.Debug == "true"
+}
 
-	return string(_replyTo)
+// Get Listener.
+func (r *RabbitMQConsumer) GetListener() func(Engine) {
+	return r.Listener
+}
+
+// Generating reply to payload.
+func (r *RabbitMQConsumer) GenerateReplyTo() (replyTo ReplyTo) {
+	lets.Bind(r, &replyTo)
+	return
 }

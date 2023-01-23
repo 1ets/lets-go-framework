@@ -1,7 +1,8 @@
 package types
 
 import (
-	"github.com/kataras/golog"
+	"lets-go-framework/lets"
+
 	"google.golang.org/grpc"
 )
 
@@ -25,7 +26,7 @@ type GrpcServer struct {
 // Get Port
 func (g *GrpcServer) GetPort() string {
 	if g.Port == "" {
-		golog.Warn("Config: SERVER_GRPC_PORT is not set, using default configuration.")
+		lets.LogW("Config: SERVER_GRPC_PORT is not set, using default configuration.")
 
 		return SERVER_GRPC_PORT
 	}

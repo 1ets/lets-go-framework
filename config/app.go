@@ -6,6 +6,8 @@ import (
 	"lets-go-framework/lets/types"
 	"lets-go-framework/services"
 	"os"
+
+	"github.com/rabbitmq/amqp091-go"
 )
 
 // Load configuration into the kernel
@@ -39,20 +41,44 @@ func App() {
 		},
 	}
 
+	// Setup RabbitMQ
+	frameworks.RabbitMQConfig = &types.RabbitMQConfig{
 
-	// frameworks.RabbitMQDsn = &types.RabbitMQDsn{
-	// 	Host:        os.Getenv("RQ_HOST"),
-	// 	Port:        os.Getenv("RQ_PORT"),
-	// 	Username:    os.Getenv("RQ_USERNAME"),
-	// 	Password:    os.Getenv("RQ_PASSWORD"),
-	// 	VirtualHost: os.Getenv("RQ_VHOST"),
-	// }
+		// Possible to use multiple rabbit server.
+		Servers: []types.IRabbitMQServer{
 
-	// frameworks.RabbitMQConsumer = &types.RabbitMQConsumer{
-	// 	Name:         os.Getenv("RQ_NAME"),
-	// 	Exchange:     os.Getenv("RQ_EXCHANGE"),
-	// 	ExchangeType: amqp091.ExchangeDirect,
-	// 	RoutingKey:   os.Getenv("RQ_ROUTING_KEY"),
-	// 	Queue:        os.Getenv("RQ_QUEUE"),
-	// }
+			// Setup RabbitMQ Server.
+			&types.RabbitMQServer{
+				Host:        os.Getenv("RABBIT_HOST"),
+				Port:        os.Getenv("RABBIT_PORT"),
+				Username:    os.Getenv("RABBIT_USERNAME"),
+				Password:    os.Getenv("RABBIT_PASSWORD"),
+				VirtualHost: os.Getenv("RABBIT_VHOST"),
+
+				// Possible to create multiple consumer for multiple purpose.
+				Consumers: []types.IRabbitMQConsumer{
+
+					// Setup Consumers
+					&types.RabbitMQConsumer{
+						Name:         os.Getenv("LISTEN_RABBIT_NAME"),
+						Exchange:     os.Getenv("LISTEN_RABBIT_EXCHANGE"),
+						ExchangeType: amqp091.ExchangeDirect,
+						RoutingKey:   os.Getenv("LISTEN_RABBIT_ROUTING_KEY"),
+						Queue:        os.Getenv("LISTEN_RABBIT_QUEUE"),
+						Debug:        os.Getenv("LISTEN_RABBIT_DEBUG"),
+						Listener:     services.RabbitMQRouter,
+					},
+				},
+				Publishers: []types.IRabbitMQPublisher{
+					// Setup Publisher
+					&types.RabbitMQPublisher{
+						Name: os.Getenv("LISTEN_RABBIT_NAME"),
+						Clients: []types.IRabbitMQServiceClient{
+							clients.RabbitExample,
+						},
+					},
+				},
+			},
+		},
+	}
 }

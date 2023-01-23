@@ -1,8 +1,6 @@
 package types
 
-import (
-	"github.com/kataras/golog"
-)
+import "lets-go-framework/lets"
 
 // Default configuration
 const (
@@ -30,7 +28,7 @@ type RabbitMQDsn struct {
 // Get Host.
 func (rtm *RabbitMQDsn) GetHost() string {
 	if rtm.Host == "" {
-		golog.Warn("Configs RabbitMQ: RQ_HOST is not set in .env file, using default configuration.")
+		lets.LogW("Configs RabbitMQ: RQ_HOST is not set in .env file, using default configuration.")
 
 		return RQ_HOST
 	}
@@ -41,7 +39,7 @@ func (rtm *RabbitMQDsn) GetHost() string {
 // Get Port.
 func (rtm *RabbitMQDsn) GetPort() string {
 	if rtm.Port == "" {
-		golog.Warn("Configs RabbitMQ: RQ_PORT is not set in .env file, using default configuration.")
+		lets.LogW("Configs RabbitMQ: RQ_PORT is not set in .env file, using default configuration.")
 
 		return RQ_PORT
 	}
@@ -52,7 +50,7 @@ func (rtm *RabbitMQDsn) GetPort() string {
 // Get Username.
 func (rtm *RabbitMQDsn) GetUsername() string {
 	if rtm.Username == "" {
-		golog.Warn("Configs RabbitMQ: RQ_USERNAME is not set in .env file, using default configuration.")
+		lets.LogW("Configs RabbitMQ: RQ_USERNAME is not set in .env file, using default configuration.")
 
 		return RQ_USERNAME
 	}
@@ -63,7 +61,7 @@ func (rtm *RabbitMQDsn) GetUsername() string {
 // Get Password.
 func (rtm *RabbitMQDsn) GetPassword() string {
 	if rtm.Password == "" {
-		golog.Warn("Configs RabbitMQ: RQ_PASSWORD is not set in .env file, using default configuration.")
+		lets.LogW("Configs RabbitMQ: RQ_PASSWORD is not set in .env file, using default configuration.")
 
 		return RQ_PASSWORD
 	}
@@ -74,7 +72,7 @@ func (rtm *RabbitMQDsn) GetPassword() string {
 // Get VirtualHost.
 func (rtm *RabbitMQDsn) GetVirtualHost() string {
 	if rtm.VirtualHost == "" {
-		golog.Warn("Configs RabbitMQ: RQ_VHOST is not set in .env file, using default configuration.")
+		lets.LogW("Configs RabbitMQ: RQ_VHOST is not set in .env file, using default configuration.")
 
 		return RQ_VHOST
 	}

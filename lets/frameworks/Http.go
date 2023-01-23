@@ -13,21 +13,21 @@ import (
 var HttpConfig types.IHttpServer
 
 // HTTP service struct
-type httpService struct {
-	Server     string
-	Engine     *gin.Engine
-	Middleware func(*gin.Engine)
-	Router     func(*gin.Engine)
+type httpServer struct {
+	server     string
+	engine     *gin.Engine
+	middleware func(*gin.Engine)
+	router     func(*gin.Engine)
 }
 
 // Initialize service
-func (http *httpService) Init() {
+func (http *httpServer) init() {
 	gin.SetMode(HttpConfig.GetMode())
 
-	http.Server = fmt.Sprintf(":%s", HttpConfig.GetPort())
-	http.Engine = gin.New()
-	http.Middleware = HttpConfig.GetMiddleware()
-	http.Router = HttpConfig.GetRouter()
+	http.server = fmt.Sprintf(":%s", HttpConfig.GetPort())
+	http.engine = gin.New()
+	http.middleware = HttpConfig.GetMiddleware()
+	http.router = HttpConfig.GetRouter()
 
 	var defaultLogFormatter = func(param gin.LogFormatterParams) string {
 		var statusColor, methodColor, resetColor string
@@ -53,12 +53,12 @@ func (http *httpService) Init() {
 		)
 	}
 
-	http.Engine.Use(gin.LoggerWithFormatter(defaultLogFormatter))
+	http.engine.Use(gin.LoggerWithFormatter(defaultLogFormatter))
 }
 
 // Run service
-func (http *httpService) Serve() {
-	http.Engine.Run(http.Server)
+func (http *httpServer) serve() {
+	http.engine.Run(http.server)
 }
 
 // Start http service
@@ -69,10 +69,10 @@ func Http() {
 
 	lets.LogI("HTTP Server Starting ...")
 
-	var http httpService
+	var http httpServer
 
-	http.Init()
-	http.Middleware(http.Engine)
-	http.Router(http.Engine)
-	http.Serve()
+	http.init()
+	http.middleware(http.engine)
+	http.router(http.engine)
+	http.serve()
 }
