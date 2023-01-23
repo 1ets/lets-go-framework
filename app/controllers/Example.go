@@ -74,7 +74,7 @@ func RabbitConsumerExample(request data.RequestExample) (response data.ResponseE
 }
 
 // RabbitMQ client example controller.
-func RabbitPublisherExample(mode string, request data.RequestExample) (response data.ResponseExample, err error) {
+func RabbitPublisherExample(request data.RequestExample, mode string) (response data.ResponseExample, err error) {
 	// Wait for reply.
 	if mode == "sync" {
 		response, err = clients.RabbitExample.GreetingSync(&request)

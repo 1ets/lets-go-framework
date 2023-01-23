@@ -27,15 +27,8 @@ func RabbitExample(r *types.Event) {
 		fmt.Println("ERR: ", err.Error())
 	}
 
-	lets.LogD(lets.ToJson(response))
-
 	// Create reply for sync
 	if r.GetReplyTo() != nil {
-		clients.RabbitExample.GreetingCallback(r.CorrelationId, &response)
+		clients.RabbitExample.GreetingCallback(r, &response)
 	}
 }
-
-// // Adapter for RabbitMQ consumer.
-// func RabbitCallbackExample(r *types.Event) {
-// 	clients.RabbitExample.GreetingSyncCallback(r)
-// }

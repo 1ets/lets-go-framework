@@ -6,10 +6,19 @@ import (
 	"lets-go-framework/app/adapters/clients"
 	"lets-go-framework/app/adapters/data"
 	"lets-go-framework/app/structs"
-	"time"
+	"lets-go-framework/lets"
+	"net/http"
 
 	"github.com/bongnv/saga"
 )
+
+// This scenario is made to make it easier for you to understand how
+// the transfer saga works, even though not all processes will be
+// implemented by you in reality.
+// How it works:
+// 1. Initially request a transfer to the transfer service.
+// 2. Begin to update the balance to the balance service.
+// 3. Send notifications to users.
 
 const (
 	StateTransferInit saga.State = iota
@@ -19,228 +28,231 @@ const (
 	StateBalanceTranferSucceed
 	StateBalanceTranferFailed
 	StateBalanceTranferCanceled
-	StateNotifyUserSucceed
-	StateNotifyUserFailed
-	StateNotifyUserRetry
+	StateNotificationCreated
+	StateNotificationFailed
+	StateNotificationRetry
 )
 
-type ActivityTransfer struct {
+type ExampleActivityTransfer struct {
 	state saga.State
 }
 
-func (t *ActivityTransfer) State() saga.State {
+func (t *ExampleActivityTransfer) State() saga.State {
 	return t.state
 }
 
-type Transfer struct {
-	bucket *DataTransferEvent
+// Saga transfer handler.
+type ExampleTransfer struct {
+	bucket *structs.SagaTransferData
 }
 
-var WaitTransfer = make(map[string](chan structs.EventTransferResult))
+// Executor for requesting transaction.
+func (t *ExampleTransfer) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
+	lets.LogI("Saga: Transfer: Starting ...")
 
-func (t *Transfer) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
-	fmt.Println("Transfer")
-
-	var correlationId = fmt.Sprintf("%v", time.Now().Unix())
-	WaitTransfer[correlationId] = make(chan structs.EventTransferResult)
-	defer delete(WaitTransfer, correlationId)
-
-	// Call account service
-	svcTransaction := clients.RabbitTransfer
-	err := svcTransaction.Transfer(correlationId, &data.EventTransfer{
+	var request = data.RequestTransfer{
 		SenderId:   t.bucket.SenderId,
 		ReceiverId: t.bucket.ReceiverId,
 		Amount:     t.bucket.Amount,
-	})
-
-	if err != nil {
-		return &ActivityTransfer{
-			state: StateTransferFailed,
-		}, err
 	}
 
-	var data = <-WaitTransfer[correlationId]
-	t.bucket.CrTrxId = data.CrTransactionId
-	t.bucket.DbTrxId = data.DbTransactionId
+	// Call transfer service
+	var response data.ResponseTransfer
+	var err error
+	if response, err = clients.RabbitSagaExample.Transfer(&request); err != nil {
+		lets.LogE("Saga: Transfer: %s", err.Error())
+	}
 
-	return &ActivityTransfer{
-		state: StateTransferSucceed,
-	}, nil
+	// Success response
+	if response.Code == http.StatusCreated {
+		lets.LogI("Saga: Transfer: Success")
+
+		t.bucket.CrTrxId = response.CrTransactionId
+		t.bucket.DbTrxId = response.DbTransactionId
+
+		return &ExampleActivityTransfer{
+			state: StateTransferSucceed,
+		}, nil
+	}
+
+	// Error response
+	lets.LogI("Saga: Transfer: Failed")
+	return &ExampleActivityTransfer{
+		state: StateTransferFailed,
+	}, err
 }
 
-// Rollback state
+// Saga rollback transfer handler.
 type TransferRollback struct {
-	bucket *DataTransferEvent
+	bucket *structs.SagaTransferData
 }
 
+// Executor for requesting transaction rollback.
 func (t *TransferRollback) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
-	fmt.Println("TransferRollback")
+	lets.LogI("Saga: TransferRollback: Starting ...")
 
-	// Call transaction service
-	svcTransaction := clients.RabbitTransfer
-	err := svcTransaction.TransferRollback(&data.EventTransferRollback{
+	var request = data.RequestTransferRollback{
 		CrTransactionId: t.bucket.CrTrxId,
 		DbTransactionId: t.bucket.DbTrxId,
-	})
+	}
 
-	return &ActivityTransfer{
+	// Call transfer rollback service
+	var err error
+	if _, err = clients.RabbitSagaExample.TransferRollback(&request); err != nil {
+		lets.LogE("Saga: Transfer: %s", err.Error())
+	}
+
+	lets.LogI("Saga: TransferRollback: End")
+
+	// With confidence assume that the rollback is handled by the service properly,
+	// so there is no need to check. If needed, you can check rollback response,
+	// with the creativity of your code.
+	return &ExampleActivityTransfer{
 		state: StateTransferCanceled,
 	}, err
 }
 
+// Saga balance transfer service handler.
 type BalanceTransfer struct {
-	bucket *DataTransferEvent
+	bucket *structs.SagaTransferData
 }
 
-// Make it public so can accessed by controller handler
-var WaitBalanceTransfer = make(map[string](chan structs.EventBalanceTransferResult))
-
+// Executor for requesting balance transfer.
 func (t *BalanceTransfer) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
-	fmt.Println("BalanceCommitStart")
+	lets.LogI("Saga: BalanceTransfer: Starting ...")
 
-	var correlationId = fmt.Sprintf("%v", time.Now().Unix())
-	WaitBalanceTransfer[correlationId] = make(chan structs.EventBalanceTransferResult)
-	defer delete(WaitBalanceTransfer, correlationId)
-
-	// Call account service
-	svcBalance := clients.RabbitBalance
-	err := svcBalance.BalanceTransfer(correlationId, &data.EventTransfer{
+	var request = data.RequestBalance{
 		SenderId:   t.bucket.SenderId,
 		ReceiverId: t.bucket.ReceiverId,
 		Amount:     t.bucket.Amount,
-	})
-
-	if err != nil {
-		return &ActivityTransfer{
-			state: StateTransferFailed,
-		}, err
 	}
 
-	var response = <-WaitBalanceTransfer[correlationId]
-	t.bucket.CrBalance = response.CrBalance
-	t.bucket.DbBalance = response.DbBalance
+	// Call transfer service
+	var response data.ResponseBalance
+	var err error
+	if response, err = clients.RabbitSagaExample.Balance(&request); err != nil {
+		lets.LogE("Saga: Transfer: %s", err.Error())
+	}
+	// Success response
+	if response.Code == http.StatusOK {
+		lets.LogI("Saga: BalanceTransfer: Success")
 
-	// fmt.Printf("if %f	<= 0 || %f <= 0 {", response.CrBalance, response.DbBalance)
+		t.bucket.CrBalance = response.CrBalance
+		t.bucket.DbBalance = response.DbBalance
 
+		return &ExampleActivityTransfer{
+			state: StateBalanceTranferSucceed,
+		}, nil
+	}
+
+	// In this scenario it's a side check in the saga, but that doesn't mean it's a good thing.
 	if response.CrBalance <= 0 || response.DbBalance <= 0 {
-		err := svcBalance.BalanceRollback(&data.EventTransfer{
-			SenderId:   t.bucket.SenderId,
-			ReceiverId: t.bucket.ReceiverId,
-			Amount:     t.bucket.Amount,
-		})
+		if _, err := clients.RabbitSagaExample.BalanceRollback(&request); err != nil {
+			lets.LogE("Saga: Transfer: %s", err.Error())
+		}
 
-		fmt.Println(err)
-
-		return &ActivityTransfer{
+		return &ExampleActivityTransfer{
 			state: StateBalanceTranferFailed,
 		}, nil
 	}
 
-	return &ActivityTransfer{
-		state: StateBalanceTranferSucceed,
-	}, nil
+	// Error response
+	lets.LogI("Saga: BalanceTransfer: Failed")
+
+	return &ExampleActivityTransfer{
+		state: StateTransferFailed,
+	}, err
 }
 
+// The compensation when notification fails.
 type BalanceRollback struct {
-	bucket *DataTransferEvent
+	bucket *structs.SagaTransferData
 }
 
+// Execution for requesting balance rollback.
 func (t *BalanceRollback) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
-	fmt.Println("BalanceRollback")
+	lets.LogI("Saga: BalanceRollback: Starting ...")
 
-	// Call account service
-	svcBalance := clients.RabbitBalance
-	err := svcBalance.BalanceRollback(&data.EventTransfer{
+	var request = data.RequestBalance{
 		SenderId:   t.bucket.SenderId,
 		ReceiverId: t.bucket.ReceiverId,
 		Amount:     t.bucket.Amount,
-	})
-
-	if err != nil {
-		fmt.Println(err.Error())
 	}
 
-	return &ActivityTransfer{
+	// Call balance rollback service provider
+	if _, err := clients.RabbitSagaExample.BalanceRollback(&request); err != nil {
+		lets.LogE("Saga: BalanceRollback: %s", err.Error())
+	}
+
+	// Return state where balance transaction is canceled.
+	return &ExampleActivityTransfer{
 		state: StateBalanceTranferCanceled,
 	}, nil
 }
 
-type NotifyUserStart struct {
-	bucket *DataTransferEvent
+// Notification handler.
+type NotifyUser struct {
+	bucket *structs.SagaTransferData
 }
 
-func (a *NotifyUserStart) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
-	fmt.Println("NotifyUserStart")
+// Create notification in to theuser
+func (t *NotifyUser) Execute(ctx context.Context, tx saga.Transaction) (saga.Transaction, error) {
 
-	// Call account service
-	svcNotification := clients.RabbitNotification
-	err := svcNotification.Notify(&data.EventNotification{
-		SenderId:   a.bucket.SenderId,
-		ReceiverId: a.bucket.ReceiverId,
-		Amount:     a.bucket.Amount,
-		Status:     "SUCCESS",
-	})
+	lets.LogI("Saga: NotifyUser: Starting ...")
 
-	if err != nil {
-		fmt.Println(err.Error())
+	var request = data.RequestNotification{
+		SenderId:   t.bucket.SenderId,
+		ReceiverId: t.bucket.ReceiverId,
+		Amount:     t.bucket.Amount,
+		Status:     "success",
 	}
 
-	return &ActivityTransfer{
-		state: StateNotifyUserSucceed,
+	// Call balance rollback service provider
+	if _, err := clients.RabbitSagaExample.Notification(&request); err != nil {
+		lets.LogE("Saga: NotifyUser: %s", err.Error())
+	}
+
+	// Return state where noitification successfully delivered.
+	return &ExampleActivityTransfer{
+		state: StateNotificationCreated,
 	}, nil
 }
 
-type DataTransferEvent struct {
-	SenderId   uint
-	ReceiverId uint
-	Amount     float64
-	CrTrxId    uint
-	DbTrxId    uint
-	CrBalance  float64
-	DbBalance  float64
-}
-
 // Define saga transfer
-func SagaTransfer(data *structs.HttpTransferRequest) (state saga.State, err error) {
-	// Create data bucket
-	bucket := DataTransferEvent{
-		SenderId:   data.SenderId,
-		ReceiverId: data.ReceiverId,
-		Amount:     data.Amount,
-	}
-
+func SagaTransfer(data *structs.SagaTransferData) (state saga.State, err error) {
+	// Create saga runtime configuration.
 	exampleConfig := saga.Config{
 		InitState: StateTransferInit,
 		Activities: []saga.Activity{
 			{
-				Aggregator: &Transfer{
-					bucket: &bucket,
+				Aggregator: &ExampleTransfer{
+					bucket: data,
 				},
 				SuccessState: StateTransferSucceed,
 				FailureState: StateTransferFailed,
 				Compensation: &TransferRollback{
-					bucket: &bucket,
+					bucket: data,
 				},
 				RolledBackState: StateTransferCanceled,
 			},
 			{
 				Aggregator: &BalanceTransfer{
-					bucket: &bucket,
+					bucket: data,
 				},
 				SuccessState: StateBalanceTranferSucceed,
 				FailureState: StateBalanceTranferFailed,
 				Compensation: &BalanceRollback{
-					bucket: &bucket,
+					bucket: data,
 				},
 				RolledBackState: StateBalanceTranferCanceled,
 			},
 			{
-				Aggregator: &NotifyUserStart{
-					bucket: &bucket,
+				Aggregator: &NotifyUser{
+					bucket: data,
 				},
-				SuccessState:    StateNotifyUserSucceed,
-				FailureState:    StateNotifyUserFailed,
-				RolledBackState: StateNotifyUserRetry,
+				SuccessState:    StateNotificationCreated,
+				FailureState:    StateNotificationFailed,
+				RolledBackState: StateNotificationRetry,
 			},
 		},
 	}
@@ -251,7 +263,7 @@ func SagaTransfer(data *structs.HttpTransferRequest) (state saga.State, err erro
 		return
 	}
 
-	finalTx, err := executor.Execute(context.Background(), &ActivityTransfer{
+	finalTx, err := executor.Execute(context.Background(), &ExampleActivityTransfer{
 		state: StateTransferInit,
 	})
 	if err != nil {
