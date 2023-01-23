@@ -19,8 +19,8 @@ type IEvent interface {
 
 type Event struct {
 	Name          string
-	Exchange      string
-	RoutingKey    string
+	Exchange      string // Service exchange.
+	RoutingKey    string // Service routing key.
 	Data          interface{}
 	ReplyTo       *ReplyTo
 	CorrelationId string
@@ -50,6 +50,7 @@ func (m *Event) GetExchange() string {
 func (m *Event) GetRoutingKey() string {
 	return m.RoutingKey
 }
+
 func (m *Event) GetDebug() bool {
 	return m.Debug
 }
@@ -65,9 +66,8 @@ func (m *Event) GetBody() []byte {
 }
 
 type ReplyTo struct {
-	Exchange      string `json:"exchange"`
-	RoutingKey    string `json:"routing_key"`
-	CorrelationId string `json:"correlation_id"`
+	Exchange   string `json:"exchange"`
+	RoutingKey string `json:"routing_key"`
 }
 
 func (r *ReplyTo) GetJson() string {
