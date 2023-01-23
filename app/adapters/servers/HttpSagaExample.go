@@ -27,21 +27,21 @@ func HttpSagaStatelessExample(g *gin.Context) {
 	lets.HttpResponseJson(g, response, err)
 }
 
-// // HTTP Handler for running saga transaction stateful.
-// func HttpSagaStatefullExample(g *gin.Context) {
-// 	var request data.RequestExample
-// 	var response data.ResponseExample
-// 	var err error
+// HTTP Handler for running saga transaction stateful.
+func HttpSagaStatefulExample(g *gin.Context) {
+	var request data.RequestTransfer
+	var response data.ResponseTransfer
+	var err error
 
-// 	// Bind json body into struct format
-// 	if err = g.Bind(&request); err != nil {
-// 		lets.HttpResponseJson(g, response, err)
-// 		return
-// 	}
+	// Bind json body into struct format
+	if err = g.Bind(&request); err != nil {
+		lets.HttpResponseJson(g, response, err)
+		return
+	}
 
-// 	// Call example controller
-// 	response, err = controllers.SagaStatefull(request)
+	// Call example controller
+	response, err = controllers.SagaStateful(request)
 
-// 	// Write json response
-// 	lets.HttpResponseJson(g, response, err)
-// }
+	// Write json response
+	lets.HttpResponseJson(g, response, err)
+}
