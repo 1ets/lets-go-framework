@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"lets-go-framework/lets"
 	"lets-go-framework/lets/types"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -116,7 +116,7 @@ func Migrate(g *gorm.DB, db *sql.DB) {
 	batch = lastMigration.Batch + 1
 
 	// Get migration files
-	files, err := ioutil.ReadDir("migrations")
+	files, err := os.ReadDir("migrations")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func Migrate(g *gorm.DB, db *sql.DB) {
 
 			// Read file content
 			filePath := fmt.Sprintf("migrations/%s", file.Name())
-			content, err := ioutil.ReadFile(filePath)
+			content, err := os.ReadFile(filePath)
 			if err != nil {
 				lets.LogE("Unable to run migration: %s", err.Error())
 				return
