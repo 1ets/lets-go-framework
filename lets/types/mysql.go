@@ -16,6 +16,7 @@ const (
 	MYSQL_DB_CHARSET    = "utf8"
 	MYSQL_DB_PARSE_TIME = "True"
 	MYSQL_DB_LOC        = "Local"
+	MYSQL_DB_MIGRATION  = false
 )
 
 type IMySQL interface {
@@ -30,21 +31,23 @@ type IMySQL interface {
 	DebugMode() bool
 	GetRepository() IMySQLRepository
 	GetDsn() string
+	Migration() bool
 }
 
 type MySQL struct {
-	Host       string
-	Port       string
-	Username   string
-	Password   string
-	Database   string
-	Charset    string
-	ParseTime  string
-	Loc        string
-	Debug      bool
-	Gorm       *gorm.DB
-	DB         *sql.DB
-	Repository IMySQLRepository
+	Host            string
+	Port            string
+	Username        string
+	Password        string
+	Database        string
+	Charset         string
+	ParseTime       string
+	Loc             string
+	Debug           bool
+	Gorm            *gorm.DB
+	DB              *sql.DB
+	Repository      IMySQLRepository
+	EnableMigration bool
 }
 
 func (mysql *MySQL) GetHost() string {
@@ -97,7 +100,7 @@ func (mysql *MySQL) GetCharset() string {
 
 func (mysql *MySQL) GetParseTime() string {
 	if mysql.ParseTime == "" {
-		fmt.Println("Configs MySQL: Charset is not set in configs, using default configuration.")
+		fmt.Println("Configs MySQL: ParseTime is not set in configs, using default configuration.")
 		return MYSQL_DB_CHARSET
 	}
 	return mysql.ParseTime
@@ -130,4 +133,8 @@ func (mysql *MySQL) GetDsn() string {
 		mysql.GetParseTime(),
 		mysql.GetLoc(),
 	)
+}
+
+func (mysql *MySQL) Migration() bool {
+	return mysql.EnableMigration
 }
