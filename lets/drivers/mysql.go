@@ -81,7 +81,10 @@ func MySQL() {
 	}
 	mySQL.Connect()
 
-	MySQLConfig.GetRepository().SetDriver(mySQL.Gorm)
+	// Inject Gorm into repository
+	for _, repository := range MySQLConfig.GetRepositories() {
+		repository.SetDriver(mySQL.Gorm)
+	}
 
 	// Migration
 	if MySQLConfig.Migration() {
