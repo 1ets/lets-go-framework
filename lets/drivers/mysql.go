@@ -20,11 +20,10 @@ import (
 var MySQLConfig types.IMySQL
 
 type mysqlProvider struct {
-	debug   bool
-	DSN     string
-	Gorm    *gorm.DB
-	Sql     *sql.DB
-	Adapter func(*gorm.DB)
+	debug bool
+	DSN   string
+	Gorm  *gorm.DB
+	Sql   *sql.DB
 }
 
 func (m *mysqlProvider) Connect() {
