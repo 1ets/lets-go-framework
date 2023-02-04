@@ -29,7 +29,7 @@ type IMySQL interface {
 	GetParseTime() string
 	GetLoc() string
 	DebugMode() bool
-	GetRepository() IMySQLRepository
+	GetRepositories() []IMySQLRepository
 	GetDsn() string
 	Migration() bool
 }
@@ -46,7 +46,7 @@ type MySQL struct {
 	Debug           bool
 	Gorm            *gorm.DB
 	DB              *sql.DB
-	Repository      IMySQLRepository
+	Repositories    []IMySQLRepository
 	EnableMigration bool
 }
 
@@ -118,8 +118,8 @@ func (mysql *MySQL) DebugMode() bool {
 	return mysql.Debug
 }
 
-func (mysql *MySQL) GetRepository() IMySQLRepository {
-	return mysql.Repository
+func (mysql *MySQL) GetRepositories() []IMySQLRepository {
+	return mysql.Repositories
 }
 
 func (mysql *MySQL) GetDsn() string {
