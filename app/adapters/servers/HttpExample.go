@@ -96,3 +96,16 @@ func HttpRabbitSyncExample(g *gin.Context) {
 	// Write json response
 	lets.HttpResponseJson(g, response, err)
 }
+
+// HTTP Handler for get list of users
+func HttpRedisExample(g *gin.Context) {
+	// var request data.RequestExample
+	var response data.ResponseExample
+	var err error
+
+	// Call example controller
+	response, err = controllers.RedisExample()
+
+	// Write json response
+	lets.HttpResponseJson(g, response, err)
+}

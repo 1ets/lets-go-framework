@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"lets-go-framework/app/adapters/clients"
 	"lets-go-framework/app/adapters/data"
+	"lets-go-framework/app/models"
 	"lets-go-framework/app/repository"
 	"lets-go-framework/lets"
 	"net/http"
@@ -41,6 +42,23 @@ func DatabaseExample() (response data.ResponseExample, err error) {
 
 	// Send back response to adapter
 	response.Greeting = fmt.Sprintf("We have %v users!", len(data))
+
+	return
+}
+
+// Example controller interaction with database.
+func RedisExample() (response data.ResponseExample, err error) {
+	user := models.User{
+		Name:  "John Doe",
+		Email: "johndoe@mail.com",
+	}
+
+	repository.RedisExample.SaveUser(&user)
+
+	userRedis := repository.RedisExample.GetUser()
+
+	// Send back response to adapter
+	response.Greeting = fmt.Sprintf("Hello %s! We test redis.", userRedis.Name)
 
 	return
 }

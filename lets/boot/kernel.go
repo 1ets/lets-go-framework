@@ -20,6 +20,7 @@ var Servers = []func(){
 	frameworks.Grpc,
 	frameworks.RabbitMQ,
 	drivers.MySQL,
+	drivers.Redis,
 }
 
 // Add initialization function and run before application starting
