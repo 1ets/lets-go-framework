@@ -34,4 +34,10 @@ func Database() {
 			repository.RedisExample,
 		},
 	}
+
+	drivers.MongoDBConfig = &types.MongoDB{
+		Dsn:          os.Getenv("MONGODB_DSN"),
+		Database:     os.Getenv("MONGODB_DATABASE"),
+		Repositories: []types.IMongoDBRepository{},
+	}
 }
