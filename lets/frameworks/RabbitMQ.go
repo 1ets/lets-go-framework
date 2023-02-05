@@ -18,10 +18,11 @@ var RabbitMQConfig types.IRabbitMQConfig
 
 // RabbitMQ server defirinitions.
 type rabbitServer struct {
-	dsn        string
-	config     amqp091.Config
-	connection *amqp091.Connection
-	channel    *amqp091.Channel
+	dsn           string
+	config        amqp091.Config
+	connection    *amqp091.Connection
+	channel       *amqp091.Channel
+	retryDuration time.Duration
 }
 
 // Initialize RabbitMQ server.
@@ -29,27 +30,40 @@ func (r *rabbitServer) init(config types.IRabbitMQServer) {
 	r.dsn = fmt.Sprintf("amqp://%s:%s@%s:%s/%s", config.GetUsername(), config.GetPassword(), config.GetHost(), config.GetPort(), config.GetVHost())
 	r.config = amqp091.Config{Properties: amqp091.NewConnectionProperties()}
 	r.config.Properties.SetClientConnectionName(os.Getenv("SERVICE_ID"))
+	r.retryDuration = time.Duration(10) * time.Second
+	r.config.Heartbeat = time.Duration(5) * time.Second
 }
 
 // Start consuming.
 func (r *rabbitServer) connect() {
+	lets.LogI("RabbitMQ: connecting ...")
+
 	var err error
-	r.connection, err = amqp091.DialConfig(r.dsn, r.config)
-	if err != nil {
-		fmt.Printf("dial: %s", err.Error())
-		return
+	for {
+		err = nil
+		r.connection, err = amqp091.DialConfig(r.dsn, r.config)
+		if err != nil {
+			lets.LogE("RabbitMQ: %s", err.Error())
+			lets.LogE("RabbitMQ: wait retry connection ...")
+			<-time.After(r.retryDuration)
+			continue
+		}
+		break
 	}
 
 	// Listen for error on connection
 	go func() {
-		lets.LogE("RabbitMQ Server: %s", <-r.connection.NotifyClose(make(chan *amqp091.Error)))
+		lets.LogE("RabbitMQ: %s", <-r.connection.NotifyClose(make(chan *amqp091.Error)))
+		go RabbitMQ() // Retry Connection
 	}()
 
 	// Create channel connection.
 	if r.channel, err = r.connection.Channel(); err != nil {
-		lets.LogE("RabbitMQ Server: %s", err.Error())
+		lets.LogE("RabbitMQ: %s", err.Error())
 		return
 	}
+
+	lets.LogI("RabbitMQ: connected")
 }
 
 // RabbitMQ consumer definitions.
@@ -66,7 +80,7 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 
 	// Create channel connection.
 	if server.channel, err = server.connection.Channel(); err != nil {
-		lets.LogE("RabbitMQ Server: %s", err.Error())
+		lets.LogE("RabbitMQ: %s", err.Error())
 		return
 	}
 
@@ -79,7 +93,7 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 		false,               // noWait
 		nil,                 // arguments
 	); err != nil {
-		lets.LogE("RabbitMQ Server: %s", err.Error())
+		lets.LogE("RabbitMQ: %s", err.Error())
 		return
 	}
 
@@ -91,7 +105,9 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 		false,                    // noWait
 		nil,                      // arguments
 	); err != nil {
-		lets.LogE("RabbitMQ Server: %s", err.Error())
+		lets.LogE("RabbitMQ: %s", err.Error())
+
+		RabbitMQ() // Retry Connection
 		return
 	}
 
@@ -105,13 +121,14 @@ func (r *rabbitConsumer) consume(server *rabbitServer, consumer types.IRabbitMQC
 		false,              // noWait
 		nil,                // arguments
 	); err != nil {
-		fmt.Printf("consume: %s", err.Error())
+		lets.LogE("RabbitMQ: %s", err.Error())
 		return
 	}
 
 	cleanup := func() {
 		lets.LogE("RabbitMQ Server: %s", "Delivery channel is closed.")
 		r.done <- nil
+		go RabbitMQ()
 	}
 	defer cleanup()
 
@@ -165,6 +182,11 @@ func (r *RabbitPublisher) init(server *rabbitServer, publisher types.IRabbitMQPu
 }
 
 func (r *RabbitPublisher) Publish(event types.IEvent) (err error) {
+	if r.channel == nil {
+		lets.LogE("RabbitMQ Publisher: Channel is nil or publisher not configured.")
+		return
+	}
+
 	var body = event.GetBody()
 	// Encode object to json string
 	if event.GetDebug() {
