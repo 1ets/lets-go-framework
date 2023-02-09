@@ -22,6 +22,7 @@ type IRabbitMQServer interface {
 	GetVHost() string
 	GetConsumers() []IRabbitMQConsumer
 	GetPublishers() []IRabbitMQPublisher
+	GetAutoAck() bool
 }
 
 // Default configuration
@@ -42,6 +43,7 @@ type RabbitMQServer struct {
 	VirtualHost string
 	Consumers   []IRabbitMQConsumer
 	Publishers  []IRabbitMQPublisher
+	AutoAck     bool
 }
 
 // Get Host.
@@ -107,4 +109,9 @@ func (r *RabbitMQServer) GetConsumers() []IRabbitMQConsumer {
 // Get Publisher.
 func (r *RabbitMQServer) GetPublishers() []IRabbitMQPublisher {
 	return r.Publishers
+}
+
+// Get AutoAck.
+func (r *RabbitMQServer) GetAutoAck() bool {
+	return r.AutoAck
 }
