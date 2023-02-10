@@ -15,3 +15,10 @@ func Bind(source any, v any) {
 		LogE("Bind: %s", err.Error())
 	}
 }
+
+func BindJson(source string, v any) {
+	err := json.Unmarshal([]byte(source), v)
+	if err != nil {
+		LogE("Bind: %s", err.Error())
+	}
+}
