@@ -315,3 +315,37 @@ func getkeylength(keyType int) int {
 		return 2048
 	}
 }
+
+func (c *Crypto) EncryptOAEP(message string) (b []byte, b64 string) {
+	b, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, c.PublicKey, []byte(message), nil)
+	if err != nil {
+		LogE("EncryptOAEP: EncryptOAEP: %w", err)
+		return
+	}
+
+	b64 = base64.StdEncoding.EncodeToString(b)
+
+	return
+}
+
+func (c *Crypto) DecryptOAEP(b []byte) string {
+	opts := &rsa.OAEPOptions{Hash: crypto.SHA256}
+
+	decryptedBytes, err := c.PrivateKey.Decrypt(nil, b, opts)
+	if err != nil {
+		LogE("DecryptOAEP: Decrypt: %w", err)
+		return ""
+	}
+
+	return string(decryptedBytes)
+}
+
+func (c *Crypto) DecryptB64OAEP(b64 string) string {
+	b, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		LogE("DecryptOAEP: Decrypt: %w", err)
+		return ""
+	}
+
+	return c.DecryptOAEP(b)
+}

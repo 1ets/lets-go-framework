@@ -109,37 +109,3 @@ func HttpRedisExample(g *gin.Context) {
 	// Write json response
 	lets.HttpResponseJson(g, response, err)
 }
-
-func HttpGetSignatureExample(g *gin.Context) {
-	var response data.ResponseSignatureExample
-	var err error
-
-	// Call example controller
-	response.Signature = controllers.CreateSignatureExample()
-
-	// Write json response
-	lets.HttpResponseJson(g, response, err)
-}
-
-func HttpVerifySignatureExample(g *gin.Context) {
-	var request data.RequestVerifySignatureExample
-	var response data.ResponsVerifyeSignatureExample
-	var err error
-
-	response.Result = "Verified"
-
-	// Bind json body into struct format
-	if err = g.Bind(&request); err != nil {
-		lets.HttpResponseJson(g, response, err)
-		return
-	}
-
-	// Call example controller
-	err = controllers.VerifySignatureExample(request.Signature)
-	if err != nil {
-		response.Result = "Unverified"
-	}
-
-	// Write json response
-	lets.HttpResponseJson(g, response, err)
-}
