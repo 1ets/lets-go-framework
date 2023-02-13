@@ -19,3 +19,22 @@ type ResponsDatabaseeExample struct {
 
 	Note string `json:"note"`
 }
+
+type RequestSignatureExample struct {
+}
+
+type ResponseSignatureExample struct {
+	types.Response
+
+	Signature string `json:"signature"`
+}
+
+type RequestVerifySignatureExample struct {
+	Signature string `json:"signature"`
+}
+
+type ResponsVerifyeSignatureExample struct {
+	types.Response
+
+	Result string `json:"result"`
+}
