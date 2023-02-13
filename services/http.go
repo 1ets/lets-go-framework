@@ -12,8 +12,6 @@ func HttpMiddleware(middleware *gin.Engine) {
 }
 
 func HttpRouter(route *gin.Engine) {
-	route.GET("", servers.HttpGenerateKey)
-
 	route.POST("example", servers.HttpPostExample)
 	route.GET("example-database", servers.HttpGetDatabaseExample)
 	route.GET("example-redis", servers.HttpRedisExample)
@@ -22,6 +20,8 @@ func HttpRouter(route *gin.Engine) {
 	route.POST("example-rabbitmq-sync", servers.HttpRabbitSyncExample)
 	route.GET("example-crypto-signature", servers.HttpGetSignatureExample)
 	route.POST("example-crypto-signature", servers.HttpVerifySignatureExample)
+	route.GET("example-crypto-generate", servers.HttpGenerateKey)
+	route.GET("example-crypto-encdec", servers.HttpEncryptDecrypt)
 
 	// SAGA EXAMPLE
 	route.POST("example-saga-stateless", servers.HttpSagaStatelessExample)
