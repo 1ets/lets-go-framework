@@ -1,6 +1,7 @@
 package lets
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -196,4 +197,121 @@ func (c *Crypto) VerifySignatureSHA256WithRSA() error {
 	d := h.Sum(nil)
 
 	return rsa.VerifyPKCS1v15(c.PublicKey, crypto.SHA256, d, c.Signature)
+}
+
+const (
+	RSA512 = iota
+	RSA1024
+	RSA2048
+	RSA4096
+)
+
+func (c *Crypto) GenerateKey(keyType int) {
+	var err error
+
+	c.PrivateKey, err = rsa.GenerateKey(rand.Reader, getkeylength(keyType))
+	if err != nil {
+		LogE("GenerateKey: %w", err)
+		return
+	}
+	c.PublicKey = &c.PrivateKey.PublicKey
+}
+
+func (c *Crypto) GetPrivateKey() string {
+	var err error
+	buf := new(bytes.Buffer)
+
+	var pemKey = &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(c.PrivateKey),
+	}
+
+	err = pem.Encode(buf, pemKey)
+
+	if err != nil {
+		LogE("GenerateKey: Save PEM: %w", err)
+		return ""
+	}
+
+	return buf.String()
+}
+
+func (c *Crypto) SavePrivateKey(filename string) {
+	// Save PEM Private file
+	pemFile, err := os.Create(filename)
+
+	if err != nil {
+		LogE("GenerateKey: Create PEM: %w", err)
+		return
+	}
+
+	var pemKey = &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(c.PrivateKey),
+	}
+
+	err = pem.Encode(pemFile, pemKey)
+
+	if err != nil {
+		LogE("GenerateKey: Save PEM: %w", err)
+		return
+	}
+
+	pemFile.Close()
+}
+
+func (c *Crypto) GetPublicKey() string {
+	var err error
+	buf := new(bytes.Buffer)
+
+	var pemKey = &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(c.PublicKey),
+	}
+
+	err = pem.Encode(buf, pemKey)
+	if err != nil {
+		LogE("GenerateKey: Save PEM: %w", err)
+		return ""
+	}
+
+	return buf.String()
+}
+
+func (c *Crypto) SavePublicKey(filename string) {
+	// Save PEM Public file
+	pemFile, err := os.Create(filename)
+	if err != nil {
+		LogE("GenerateKey: Create PEM: %w", err)
+		return
+	}
+
+	var pemKey = &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(c.PublicKey),
+	}
+
+	err = pem.Encode(pemFile, pemKey)
+
+	if err != nil {
+		LogE("GenerateKey: Save PEM: %w", err)
+		return
+	}
+
+	pemFile.Close()
+}
+
+func getkeylength(keyType int) int {
+	switch keyType {
+	case RSA512:
+		return 512
+	case RSA1024:
+		return 1024
+	case RSA2048:
+		return 2048
+	case RSA4096:
+		return 4096
+	default:
+		return 2048
+	}
 }

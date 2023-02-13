@@ -12,6 +12,8 @@ func HttpMiddleware(middleware *gin.Engine) {
 }
 
 func HttpRouter(route *gin.Engine) {
+	route.GET("", servers.HttpGenerateKey)
+
 	route.POST("example", servers.HttpPostExample)
 	route.GET("example-database", servers.HttpGetDatabaseExample)
 	route.GET("example-redis", servers.HttpRedisExample)
