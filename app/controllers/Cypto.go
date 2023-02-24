@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"crypto"
 	"lets-go-framework/app/adapters/data"
 	"lets-go-framework/lets"
 	"lets-go-framework/lets/types/crypt"
@@ -23,41 +24,125 @@ func GenerateKeys() (response data.ResponseExample, err error) {
 	return
 }
 
-func CreateSignatureExample() (signature string, err error) {
-	payload := "Lets Go Framework"
-
+// Attempt to create signature.
+func CreateSignature() (signature string, err error) {
+	// 1. Load the provate key.
 	rsaKeys := &lets.RsaKeys{
 		PrivateKeyFile: "keys/private.pem",
 	}
-
-	err = rsaKeys.LoadPrivateKey()
-	if err != nil {
+	if err = rsaKeys.LoadPrivateKey(); err != nil {
 		return
 	}
 
-	crypto := lets.Crypto{
+	// 2. Assign key in to crypto lib.
+	myCrypto := lets.Crypto{
 		Rsa: rsaKeys,
 	}
-	crypto.SetPayloadString(payload)
-	crypto.CreateSignatureSHA256WithRSA()
 
-	return crypto.GetSignatureBase64()
+	// 3. Set the payload that want to sign.
+	sign := lets.RsaSign{
+		Hash:    crypto.SHA256,
+		Payload: []byte("This is Lets GO Framework"),
+	}
+
+	// 4. Create signature.
+	if err = myCrypto.Sign(&sign); err != nil {
+		return
+	}
+
+	// 5. Get the result in string base64 format.
+	signature = sign.ToBase64()
+
+	return
 }
 
-func VerifySignatureExample(signature string) error {
-	payload := "Lets Go Framework"
-
+// Attempt to create signature.
+func VerifySignature(signature string) (result string, err error) {
+	// 1. Load the provate key.
 	rsaKeys := &lets.RsaKeys{
 		PublicKeyFile: "keys/public.pem",
 	}
-	err := rsaKeys.Load()
+	if err = rsaKeys.LoadPublicKey(); err != nil {
+		return
+	}
 
-	crypto := lets.Crypto{
+	// 2. Assign key in to crypto lib.
+	myCrypto := lets.Crypto{
 		Rsa: rsaKeys,
 	}
 
-	crypto.SetPayloadString(payload)
-	crypto.SetSignatureBase64(signature)
+	// 3. Set the payload that want to verify.
+	sign := lets.RsaSign{
+		Hash:    crypto.SHA256,
+		Payload: []byte("This is Lets GO Framework"),
+	}
 
-	return crypto.VerifySignatureSHA256WithRSA()
+	// 4. Load signature
+	if err = sign.FromBase64(signature); err != nil {
+		return
+	}
+
+	// 4. Verify
+	if err = myCrypto.VerifySign(&sign); err != nil {
+		result = "Rejected"
+		return
+	}
+
+	result = "Verified"
+	return
+}
+
+func EncryptDecrypt() (err error) {
+	// Load the private key and/or public key, depending on needs.
+	// PrivateKey is for encryption and PublicKey is for decryption.
+	// We need to load two keys for demonstrate all process.
+	rsaKeys := &lets.RsaKeys{
+		PrivateKeyFile: "keys/private.pem",
+		PublicKeyFile:  "keys/public.pem",
+	}
+	if err = rsaKeys.Load(); err != nil {
+		return
+	}
+
+	// Assign key in to crypto lib.
+	myCrypto := lets.Crypto{
+		Rsa: rsaKeys,
+	}
+
+	////////////////////////// ENCRYPTION //////////////////////////
+	// 1. Create a type of encryption with message.
+	myEncrypt := &lets.RsaEncrypt{
+		Hash:       crypto.SHA256,
+		Encryption: lets.PKCS1v15,
+		Message:    []byte("This is Lets GO Framework"),
+	}
+
+	// 2. Do Encryption.
+	if err = myCrypto.Encrypt(myEncrypt); err != nil {
+		return
+	}
+
+	// 3. Result.
+	cipher := myEncrypt.ToBase64()
+	lets.LogI("Encrypted: %s", cipher)
+
+	////////////////////////// DECRYPTION //////////////////////////
+	// 1. Decryption setup.
+	myDecrypt := &lets.RsaEncrypt{
+		Hash:       crypto.SHA256,
+		Encryption: lets.PKCS1v15,
+	}
+
+	// 2. Load cipher text.
+	myDecrypt.FromBase64(cipher)
+
+	// 3. Do Decryption
+	if err = myCrypto.Decrypt(myDecrypt); err != nil {
+		return
+	}
+
+	// 4. Result
+	lets.LogI("Decrypted: %s", string(myDecrypt.Message))
+
+	return
 }
