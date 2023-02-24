@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"hash"
-	"lets-go-framework/lets/types/crypt"
 )
 
 const (
@@ -64,8 +63,7 @@ func (c *Crypto) VerifySign(sign *RsaSign) (err error) {
 }
 
 // Generate a pair of RSA keys.
-func (c *Crypto) Generate(keyType int, paths crypt.KeyPath) (rsaKeys *RsaKeys, err error) {
-	rsaKeys = &RsaKeys{}
+func (c *Crypto) Generate(keyType int, rsaKeys *RsaKeys) (err error) {
 	rsaKeys.PrivateKey, err = rsa.GenerateKey(rand.Reader, getkeylength(keyType))
 	if err != nil {
 		return

@@ -62,6 +62,7 @@ func (r *RsaKeys) LoadPublicKey() (err error) {
 
 // Save all keys into storage.
 func (r *RsaKeys) Save() (err error) {
+	LogI("SAVED: %s", r.PrivateKeyFile)
 	err = r.SavePrivateKey()
 	if err != nil {
 		return
@@ -91,7 +92,7 @@ func (r *RsaKeys) SavePrivateKey() (err error) {
 	if err != nil {
 		return
 	}
-
+	LogI("SAVED: %s", r.PrivateKeyFile)
 	pemFile.Close()
 	return
 }
@@ -150,7 +151,12 @@ func (r *RsaKeys) SetPublicKey(publicKey []byte) (err error) {
 	}
 
 	var key interface{}
-	key, err = x509.ParsePKIXPublicKey(block.Bytes)
+	// key, err = x509.ParsePKIXPublicKey(block.Bytes)
+	// if err != nil {
+	// 	return
+	// }
+
+	key, err = x509.ParsePKCS1PublicKey(block.Bytes)
 	if err != nil {
 		return
 	}
