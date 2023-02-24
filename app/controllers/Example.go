@@ -110,25 +110,3 @@ func RabbitPublisherExample(request data.RequestExample, mode string) (response 
 
 	return
 }
-
-func CreateSignatureExample() string {
-	payload := "Lets Go Framework"
-
-	crypto := lets.Crypto{}
-	crypto.SetPrivateKeyFile("keys/private.pem")
-	crypto.SetPayloadString(payload)
-	crypto.CreateSignatureSHA256WithRSA()
-
-	return crypto.GetSignatureBase64()
-}
-
-func VerifySignatureExample(signature string) error {
-	payload := "Lets Go Framework"
-
-	crypto := lets.Crypto{}
-	crypto.SetPublicKeyFile("keys/public.pem")
-	crypto.SetPayloadString(payload)
-	crypto.SetSignatureBase64(signature)
-
-	return crypto.VerifySignatureSHA256WithRSA()
-}
